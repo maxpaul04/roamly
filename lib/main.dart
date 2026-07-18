@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'screens/feed_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,7 +21,7 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => const Placeholder(), //TODO replace with real homepage and routes
+        '/': (context) => const FeedPage(),
       },
     );
   }
