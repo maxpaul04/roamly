@@ -54,7 +54,7 @@ class _MainNavigationState extends State<MainNavigation>{
           NavigationDestination(
             icon: Icon(Icons.notifications_outlined),
             selectedIcon: Icon(Icons.notifications),
-            label: 'Notifications',
+            label: 'News',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
