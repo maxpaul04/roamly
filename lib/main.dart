@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'main_navigation.dart';
+import 'themes/app_theme.dart';
 
 void main() {
   runApp(const MyApp());
@@ -8,21 +9,15 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'roamly',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.deepOrangeAccent,
-            brightness: Brightness.dark
-        ),
-      ),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const MainNavigation(),
-      },
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
+      home: const MainNavigation(),
     );
   }
 }
