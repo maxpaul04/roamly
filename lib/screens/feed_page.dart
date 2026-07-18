@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/city_entry_model.dart';
 import '../services/city_repository.dart';
-import '../themes/colors.dart';
+import '../widgets/city_entry_card.dart';
 
 class FeedPage extends StatelessWidget {
   const FeedPage({super.key});
@@ -21,14 +21,7 @@ class FeedPage extends StatelessWidget {
             itemCount: logs.length,
             itemBuilder: (context, index) {
               final log = logs[index];
-              return ListTile(
-                title: Text(log.name),
-                subtitle: Text(log.comment),
-                trailing: Text(
-                  '${log.rating} ★',
-                  style: const TextStyle(color: AppColors.primaryOrange),
-                ),
-              );
+              return CityEntryCard(log: log);
             },
           );
         },
