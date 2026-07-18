@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/feed_page.dart';
+import 'main_navigation.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => const FeedPage(),
+        '/': (context) => const MainNavigation(),
       },
     );
   }

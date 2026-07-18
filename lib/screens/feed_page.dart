@@ -10,7 +10,7 @@ class FeedPage extends StatelessWidget {
         title: const Text('roamly'),
       ),
       body: const Center(
-          child: Text('here you will see your homepage'),
+          child: Text('here you will see your feed'),
       ),
     );
   }
