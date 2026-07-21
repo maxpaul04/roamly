@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'models/city_entry_model.dart';
 import 'screens/feed_page.dart';
 import 'screens/add_city_page.dart';
 import 'screens/notifications_page.dart';
@@ -16,16 +17,24 @@ class _MainNavigationState extends State<MainNavigation>{
 
   int _selectedIndex = 0;
 
-  final List<Widget> _pages = [
-    const FeedPage(),
-    const SearchPage(),
-    const AddCityPage(),
-    const NotificationsPage(),
-    const ProfilePage(),
-  ];
+  void _handleCityAdded(CityEntry newCity) {
+    setState(() {
+      _selectedIndex = 0; // Go back to the Feed page after adding a city
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> _pages = [
+      const FeedPage(),
+      const SearchPage(),
+      AddCityPage(onSave: _handleCityAdded),
+      const NotificationsPage(),
+      const ProfilePage(),
+    ];
+
+
+
     return Scaffold(
       body: _pages[_selectedIndex],
       bottomNavigationBar: NavigationBar(
