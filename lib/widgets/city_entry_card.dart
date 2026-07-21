@@ -73,7 +73,7 @@ class CityEntryCard extends StatelessWidget {
             
             const Divider(height: 24),
             Text(
-              log.comment,
+              log.comment ?? "No comment yet",
               style: Theme
                   .of(context)
                   .textTheme

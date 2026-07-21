@@ -17,7 +17,6 @@ class CityRepository {
       name: 'Vienna',
       country: 'Austria',
       rating: 4.0,
-      comment: 'Found a coffee shop older than my entire family tree. 10/10 for cake, 2/10 for my ability to understand the waiter.',
       arrivalDate: DateTime.now().subtract(const Duration(days: 45)),
       departureDate: DateTime.now().subtract(const Duration(days: 40)),
     ),
