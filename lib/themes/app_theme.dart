@@ -3,7 +3,7 @@ import 'colors.dart';
 
 /*
 From here on: mostly AI generated code for the app theme, I am more interested in writing business logic code,
- instead of meticulously styling everything
+ instead of styling everything in detail
 */
 
 class AppTheme {
@@ -32,7 +32,7 @@ class AppTheme {
       // Styling for modern Material 3 NavigationBar
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AppColors.backgroundLight,
-        indicatorColor: AppColors.primaryOrange.withOpacity(0.1), // Subtle orange glow
+        indicatorColor: AppColors.primaryOrange.withValues(alpha: 0.1), // Subtle orange glow
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return const TextStyle(color: AppColors.primaryOrange, fontWeight: FontWeight.bold, fontSize: 12);
@@ -90,7 +90,7 @@ class AppTheme {
       // Styling for modern Material 3 NavigationBar
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AppColors.backgroundDark,
-        indicatorColor: AppColors.primaryOrange.withOpacity(0.15), // Subtle orange glow
+        indicatorColor: AppColors.primaryOrange.withValues(alpha: 0.15), // Subtle orange glow
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return const TextStyle(color: AppColors.primaryOrange, fontWeight: FontWeight.bold, fontSize: 12);
