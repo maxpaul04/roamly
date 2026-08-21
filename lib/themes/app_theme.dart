@@ -14,9 +14,8 @@ class AppTheme {
       brightness: Brightness.light,
       colorScheme: const ColorScheme.light(
         primary: AppColors.primaryOrange,
-        surface: AppColors.surfaceLight,
+        surface: AppColors.backgroundLight,
         onSurface: AppColors.textPrimaryLight,
-        background: AppColors.backgroundLight,
       ),
       scaffoldBackgroundColor: AppColors.backgroundLight,
       appBarTheme: const AppBarTheme(
@@ -28,6 +27,24 @@ class AppTheme {
       // Global fix for the "cheap" flash: removes the ripple/splash effect
       splashColor: Colors.transparent,
       highlightColor: Colors.transparent,
+
+      // Consolidated Input Styling
+      inputDecorationTheme: InputDecorationTheme(
+        floatingLabelBehavior: FloatingLabelBehavior.always,
+        floatingLabelStyle: const TextStyle(color: AppColors.primaryOrange),
+        enabledBorder: const OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.grey),
+        ),
+        focusedBorder: const OutlineInputBorder(
+          borderSide: BorderSide(color: AppColors.primaryOrange, width: 2),
+        ),
+        errorBorder: const OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.red),
+        ),
+        focusedErrorBorder: const OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.red, width: 2),
+        ),
+      ),
 
       // Styling for modern Material 3 NavigationBar
       navigationBarTheme: NavigationBarThemeData(
@@ -72,9 +89,8 @@ class AppTheme {
       brightness: Brightness.dark,
       colorScheme: const ColorScheme.dark(
         primary: AppColors.primaryOrange,
-        surface: AppColors.surfaceDark,
+        surface: AppColors.backgroundDark,
         onSurface: AppColors.textPrimaryDark,
-        background: AppColors.backgroundDark,
       ),
       scaffoldBackgroundColor: AppColors.backgroundDark,
       appBarTheme: const AppBarTheme(
@@ -86,6 +102,23 @@ class AppTheme {
       // Global fix for the "cheap" flash: removes the ripple/splash effect
       splashColor: Colors.transparent,
       highlightColor: Colors.transparent,
+
+      // Consolidated Input Styling
+      inputDecorationTheme: InputDecorationTheme(
+        floatingLabelBehavior: FloatingLabelBehavior.always,
+        enabledBorder: const OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.grey),
+        ),
+        focusedBorder: const OutlineInputBorder(
+          borderSide: BorderSide(color: AppColors.primaryOrange, width: 2),
+        ),
+        errorBorder: const OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.red),
+        ),
+        focusedErrorBorder: const OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.red, width: 2),
+        ),
+      ),
 
       // Styling for modern Material 3 NavigationBar
       navigationBarTheme: NavigationBarThemeData(
