@@ -7,8 +7,9 @@ class CityEntry {
   final String country;
   final DateTime arrivalDate;
   final DateTime departureDate;
-  double rating;
-  String? comment;
+  final double rating;
+  final String? comment;
+  final DateTime createdAt;
 
   CityEntry({
     required this.id,
@@ -18,8 +19,9 @@ class CityEntry {
     required this.arrivalDate,
     required this.departureDate,
     required this.rating,
-    this.comment = ""
-  });
+    this.comment,
+    DateTime? createdAt,
+  }) : createdAt = createdAt ?? DateTime.now();
 
   Map<String, dynamic> toMap() {
     return {
@@ -31,6 +33,7 @@ class CityEntry {
       'departureDate': departureDate.toIso8601String(),
       'rating': rating,
       'comment': comment,
+      'createdAt': createdAt.toIso8601String(),
     };
   }
 
@@ -44,17 +47,29 @@ class CityEntry {
       departureDate: DateTime.parse(map['departureDate'] as String),
       rating: (map['rating'] as num).toDouble(),
       comment: map['comment'] as String?,
+      createdAt: DateTime.parse(map['createdAt'] as String),
     );
   }
 
-  CityEntry copyWithId({int? id}) {
+  CityEntry copyWith({
+    int? id,
+    String? name,
+    String? country,
+    DateTime? arrivalDate,
+    DateTime? departureDate,
+    double? rating,
+    String? comment,
+  }) {
     return CityEntry(
-        id: id ?? this.id,
-        userId: userId,
-        name: name,
-        country: country,
-        arrivalDate: arrivalDate,
-        departureDate: departureDate,
-        rating: rating);
+      id: id ?? this.id,
+      userId: userId,
+      name: name ?? this.name,
+      country: country ?? this.country,
+      arrivalDate: arrivalDate ?? this.arrivalDate,
+      departureDate: departureDate ?? this.departureDate,
+      rating: rating ?? this.rating,
+      comment: comment ?? this.comment,
+      createdAt: createdAt,
+    );
   }
 }

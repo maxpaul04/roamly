@@ -29,7 +29,7 @@ class _MainNavigationState extends State<MainNavigation>{
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> _pages = [
+    final List<Widget> pages = [
       FeedPage(reloadTrigger: _reloadTrigger, repository: _repository),
       const SearchPage(),
       AddCityPage(onSave: _handleCityAdded, repository: _repository),
@@ -40,7 +40,7 @@ class _MainNavigationState extends State<MainNavigation>{
 
 
     return Scaffold(
-      body: _pages[_selectedIndex],
+      body: pages[_selectedIndex],
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) {

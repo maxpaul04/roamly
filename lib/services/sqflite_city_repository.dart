@@ -12,7 +12,7 @@ class SqfliteCityRepository implements CityRepository{
       'city_entries',
       where: 'userId = ?',
       whereArgs: [userId],
-      orderBy: 'arrivalDate DESC',
+      orderBy: 'createdAt DESC',
     );
     return maps.map((m) => CityEntry.fromMap(m)).toList();
   }
@@ -23,7 +23,7 @@ class SqfliteCityRepository implements CityRepository{
     final map = entry.toMap()..remove('id');
     final newId = await db.insert('city_entries', map);
 
-    return entry.copyWithId(id: newId);
+    return entry.copyWith(id: newId);
   }
 
   @override

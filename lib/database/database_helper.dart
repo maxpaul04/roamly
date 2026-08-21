@@ -15,7 +15,7 @@ class DatabaseHelper {
     final path = join(await getDatabasesPath(), 'roamly.db');
     return openDatabase(
         path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) {
         return db.execute('''
         CREATE TABLE city_entries(
@@ -26,7 +26,8 @@ class DatabaseHelper {
           arrivalDate TEXT NOT NULL,
           departureDate TEXT NOT NULL,
           rating REAL NOT NULL,
-          comment TEXT
+          comment TEXT,
+          createdAt TEXT NOT NULL
           )
         ''');
       },

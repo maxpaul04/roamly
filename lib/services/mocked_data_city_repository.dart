@@ -10,8 +10,10 @@ class MockedDataCityRepository {
       rating: 4.5,
       comment: 'The pastries were incredible, but the Louvre was packed.',
       arrivalDate: DateTime.now().subtract(const Duration(days: 50)),
-      departureDate: DateTime.now().subtract(const Duration(days: 30)), userId: '1'
-    ),
+      departureDate: DateTime.now().subtract(const Duration(days: 30)), userId: '1',
+  createdAt: DateTime.now(),
+
+  ),
     CityEntry(
       id: 2,
       name: 'Vienna',
@@ -19,6 +21,8 @@ class MockedDataCityRepository {
       rating: 4.0,
       arrivalDate: DateTime.now().subtract(const Duration(days: 45)),
       departureDate: DateTime.now().subtract(const Duration(days: 40)), userId: '2',
+      createdAt: DateTime.now(),
+
     ),
     CityEntry(
       id: 3,
@@ -29,6 +33,8 @@ class MockedDataCityRepository {
       arrivalDate: DateTime.now().subtract(const Duration(days: 35)),
       departureDate: DateTime.now().subtract(const Duration(days: 30)),
       userId: '3',
+      createdAt: DateTime.now(),
+
     ),
     CityEntry(
       id: 4,
@@ -39,6 +45,8 @@ class MockedDataCityRepository {
       arrivalDate: DateTime.now().subtract(const Duration(days: 25)),
       departureDate: DateTime.now().subtract(const Duration(days: 20)),
       userId: '4',
+      createdAt: DateTime.now(),
+
     ),
     CityEntry(
       id: 5,
@@ -49,56 +57,7 @@ class MockedDataCityRepository {
       arrivalDate: DateTime.now().subtract(const Duration(days: 15)),
       departureDate: DateTime.now().subtract(const Duration(days: 10)),
       userId: '5',
-    ),
-    CityEntry(
-      id: 6,
-      name: 'Amsterdam',
-      country: 'Netherlands',
-      rating: 4.0,
-      comment: 'Almost got run over by 14 bicycles, three trams, and a very aggressive duck. Beautiful canals though.',
-      arrivalDate: DateTime.now().subtract(const Duration(days: 8)),
-      departureDate: DateTime.now().subtract(const Duration(days: 5)),
-      userId: '6',
-    ),
-    CityEntry(
-      id: 7,
-      name: 'New York',
-      country: 'USA',
-      rating: 4.0,
-      comment: 'Paid 18 dollars for a sandwich. The sandwich didn\'t even say thank you. The energy is great, my bank account is sad.',
-      arrivalDate: DateTime.now().subtract(const Duration(days: 4)),
-      departureDate: DateTime.now().subtract(const Duration(days: 2)),
-      userId: '7',
-    ),
-    CityEntry(
-      id: 8,
-      name: 'Tokyo',
-      country: 'Japan',
-      rating: 5.0,
-      comment: 'The vending machine sold me hot coffee, a clean shirt, and a life lesson. I never want to leave.',
-      arrivalDate: DateTime.now().subtract(const Duration(days: 200)),
-      departureDate: DateTime.now().subtract(const Duration(days: 190)),
-      userId: '8',
-    ),
-    CityEntry(
-      id: 9,
-      name: 'Reykjavik',
-      country: 'Iceland',
-      rating: 4.5,
-      comment: 'It is so beautiful it looks fake. Also, I am currently bankrupt because I bought a soup.',
-      arrivalDate: DateTime.now().subtract(const Duration(days: 120)),
-      departureDate: DateTime.now().subtract(const Duration(days: 115)),
-      userId: '9',
-    ),
-    CityEntry(
-      id: 10,
-      name: 'Bangkok',
-      country: 'Thailand',
-      rating: 4.8,
-      comment: 'I took a Tuk-Tuk and I think I met God. Fastest 2 miles of my life. The street food is worth the adrenaline rush.',
-      arrivalDate: DateTime.now().subtract(const Duration(days: 60)),
-      departureDate: DateTime.now().subtract(const Duration(days: 55)),
-      userId: '10',
+      createdAt: DateTime.now(),
     ),
   ];
 
