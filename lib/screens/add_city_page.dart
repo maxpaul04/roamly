@@ -1,44 +1,52 @@
 import 'package:flutter/material.dart';
+import 'package:roamly/services/city_repository.dart';
 import '../models/city_entry_model.dart';
+import '../themes/colors.dart';
 
 class AddCityPage extends StatefulWidget {
+  final VoidCallback onSave;
+  final CityRepository repository;
 
-  final Function(CityEntry) onSave;
-  const AddCityPage({super.key, required this.onSave});
+  const AddCityPage({
+    super.key,
+    required this.onSave,
+    required this.repository
+  });
 
   @override
   State<AddCityPage> createState() => _AddCityPageState();
-  }
+}
 
 class _AddCityPageState extends State<AddCityPage> {
   final _cityNameController = TextEditingController();
   final _countryController = TextEditingController();
   final _commentController = TextEditingController();
-  final _ratingController = TextEditingController();
+  double _selectedRating = 5.0;
 
   @override
   void dispose() {
     _cityNameController.dispose();
     _countryController.dispose();
     _commentController.dispose();
-    _ratingController.dispose();
     super.dispose();
   }
 
-    void _saveEntry() {
-      final double rating = double.tryParse(_ratingController.text) ?? 0.0;
+  Future<void> _saveEntry() async {
+    if (_cityNameController.text.trim().isEmpty) return;
 
-      final newCity = CityEntry(
-      id: 1,
-      name: _cityNameController.text,
-      country: _countryController.text,
+    final newCity = CityEntry(
+      id: CityEntry.UNSAVED_ID,
+      userId: '1', 
+      name: _cityNameController.text.trim(),
+      country: _countryController.text.trim(),
       arrivalDate: DateTime.now(),
       departureDate: DateTime.now(),
-      rating: rating,
-      comment: _commentController.text,
-      );
+      rating: _selectedRating,
+      comment: _commentController.text.trim(),
+    );
 
-      widget.onSave(newCity);
+    await widget.repository.addEntry(newCity);
+    widget.onSave();
   }
 
   @override
@@ -52,10 +60,10 @@ class _AddCityPageState extends State<AddCityPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Add a city you have visited', style: Theme.of(context).textTheme.headlineMedium),
+            Text('Add a city you have visited',
+                style: Theme.of(context).textTheme.headlineMedium),
             const SizedBox(height: 16),
 
-            //Input Form for the city entry
             TextFormField(
               controller: _cityNameController,
               decoration: const InputDecoration(
@@ -65,45 +73,91 @@ class _AddCityPageState extends State<AddCityPage> {
             ),
             const SizedBox(height: 16),
 
-            //Input form for the country
             TextFormField(
               controller: _countryController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Country',
                 border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 16),
 
-            //Input form for the review comment
             TextFormField(
               controller: _commentController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Review Comment',
                 border: OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
-            TextFormField(
-              controller: _ratingController,
-              decoration: InputDecoration(
-                labelText: 'Rating (1.0-5.0)',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.number,
+            // Letterboxd-style Rating Selection
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Rating', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  '${_selectedRating.toStringAsFixed(1)} ★',
+                  style: const TextStyle(
+                    color: AppColors.primaryOrange,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+            Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(5, (index) {
+                  final double starValue = index + 1.0;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                    child: Stack(
+                      children: [
+                        Icon(
+                          _selectedRating >= starValue
+                              ? Icons.star
+                              : (_selectedRating >= starValue - 0.5
+                                  ? Icons.star_half
+                                  : Icons.star_outline),
+                          color: _selectedRating >= starValue - 0.5
+                              ? AppColors.primaryOrange
+                              : Colors.grey.withValues(alpha: 0.3),
+                          size: 48,
+                        ),
+                        Positioned.fill(
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () => setState(() => _selectedRating = starValue - 0.5),
+                                ),
+                              ),
+                              Expanded(
+                                child: GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () => setState(() => _selectedRating = starValue),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ),
+            ),
+            const SizedBox(height: 32),
 
-            //Submit Button
             SizedBox(
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: () {
-                  print('Button pressed (debug)');
-                  _saveEntry();
-                },
+                onPressed: _saveEntry,
                 child: const Text('Save Journey'),
               ),
             ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'models/city_entry_model.dart';
+import 'package:roamly/services/city_repository.dart';
+import 'package:roamly/services/sqflite_city_repository.dart';
 import 'screens/feed_page.dart';
 import 'screens/add_city_page.dart';
 import 'screens/notifications_page.dart';
@@ -14,21 +15,24 @@ class MainNavigation extends StatefulWidget{
   }
 
 class _MainNavigationState extends State<MainNavigation>{
-
   int _selectedIndex = 0;
+  int _reloadTrigger = 0;
 
-  void _handleCityAdded(CityEntry newCity) {
+  final CityRepository _repository = SqfliteCityRepository();
+
+  void _handleCityAdded() {
     setState(() {
-      _selectedIndex = 0; // Go back to the Feed page after adding a city
+      _reloadTrigger++;
+      _selectedIndex = 0; //go back to feed page when adding a city
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final List<Widget> _pages = [
-      const FeedPage(),
+      FeedPage(reloadTrigger: _reloadTrigger, repository: _repository),
       const SearchPage(),
-      AddCityPage(onSave: _handleCityAdded),
+      AddCityPage(onSave: _handleCityAdded, repository: _repository),
       const NotificationsPage(),
       const ProfilePage(),
     ];

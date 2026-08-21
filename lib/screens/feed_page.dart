@@ -1,16 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:roamly/services/city_repository.dart';
 import '../models/city_entry_model.dart';
-import '../services/city_repository.dart';
+import '../services/sqflite_city_repository.dart';
 import '../widgets/city_entry_card.dart';
 
 class FeedPage extends StatefulWidget {
-  const FeedPage({super.key});
+  final int reloadTrigger;
+  final CityRepository repository;
+
+  const FeedPage({
+    super.key,
+    required this.reloadTrigger,
+    required this.repository,
+  });
 
   @override
   State<FeedPage> createState() => _FeedPageState();
 }
 
 class _FeedPageState extends State<FeedPage> {
+  final _repository = SqfliteCityRepository();
   List<CityEntry> _logs = [];
 
   @override
@@ -19,8 +28,16 @@ class _FeedPageState extends State<FeedPage> {
     _loadData();
   }
 
+  @override
+  void didUpdateWidget(FeedPage old) {
+    super.didUpdateWidget(old);
+    if (old.reloadTrigger != widget.reloadTrigger) {
+      _loadData();
+    }
+  }
+
   Future<void> _loadData() async {
-    final data = await CityRepository().getAllCityEntries();
+    final data = await _repository.getEntries('1');
     setState(() {
       _logs = data;
     });
