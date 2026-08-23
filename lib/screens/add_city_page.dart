@@ -58,7 +58,6 @@ class _AddCityPageState extends State<AddCityPage> {
     setState(() {
       if (isArrival) {
         _arrivalDate = picked;
-        // Reset departure if it conflicts with the new arrival date
         if (_departureDate?.isBefore(picked) ?? false) {
           _departureDate = null;
         }
@@ -83,30 +82,24 @@ class _AddCityPageState extends State<AddCityPage> {
     });
 
     bool hasErrors = false;
-
     if (name.isEmpty) {
       nameError = 'Please enter a city name';
       hasErrors = true;
     }
-
     if (country.isEmpty) {
       countryError = 'Please enter a country';
       hasErrors = true;
     }
-
     if (_arrivalDate == null || _departureDate == null) {
       _dateError = 'Please select your visit dates';
       hasErrors = true;
     }
-
     if (_departureDate != null && _departureDate!.isBefore(_arrivalDate!)) {
       _dateError = 'Departure date cannot be before arrival date';
       hasErrors = true;
     }
 
-    if (hasErrors) {
-      return;
-    }
+    if (hasErrors) return;
 
     final newCity = CityEntry(
       id: CityEntry.UNSAVED_ID,
@@ -127,7 +120,7 @@ class _AddCityPageState extends State<AddCityPage> {
     required DateTime? date,
     required String label,
     required Future<void> Function() onTap,
-}) {
+  }) {
     return InkWell(
       onTap: onTap,
       child: InputDecorator(
@@ -145,192 +138,190 @@ class _AddCityPageState extends State<AddCityPage> {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      initialData: FirebaseAuth.instance.currentUser,
+      builder: (context, snapshot) {
+        final user = snapshot.data;
 
-    if (user == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Add City')),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
+        if (user == null) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Add City')),
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.lock_outline,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Sign In Required',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'You need to be logged in to log your travels.',
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const LoginPage()),
+                        );
+                        if (mounted) setState(() {});
+                      },
+                      child: const Text('Go to Login'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Add City'),
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.lock_outline,
-                  size: 64,
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-                ),
+                Text('Add a city you have visited',
+                    style: Theme.of(context).textTheme.headlineMedium),
                 const SizedBox(height: 16),
-                Text(
-                  'Sign In Required',
-                  style: Theme.of(context).textTheme.headlineSmall,
+                TextFormField(
+                  controller: _cityNameController,
+                  decoration: const InputDecoration(
+                    labelText: 'City Name*',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
-                const SizedBox(height: 8),
-                const Text(
-                  'You need to be logged in to log your travels.',
-                  textAlign: TextAlign.center,
+                if (nameError != null)
+                  Text(nameError!, style: const TextStyle(color: Colors.red)),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _countryController,
+                  decoration: const InputDecoration(
+                    labelText: 'Country*',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                if (countryError != null)
+                  Text(countryError!, style: const TextStyle(color: Colors.red)),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: _buildDateInput(
+                          date: _arrivalDate,
+                          label: 'Arrival Date*',
+                          onTap: () => _pickDate(isArrival: true)
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildDateInput(
+                          date: _departureDate,
+                          label: 'Departure Date*',
+                          onTap: () => _pickDate(isArrival: false)
+                      ),
+                    ),
+                  ],
+                ),
+                if (_dateError != null)
+                  Text(_dateError!, style: const TextStyle(color: Colors.red)),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _commentController,
+                  decoration: const InputDecoration(
+                    labelText: 'Review Comment (optional)',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
                 const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const LoginPage()),
-                    );
-                  },
-                  child: const Text('Go to Login'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Rating', style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      '${_selectedRating.toStringAsFixed(1)} ★',
+                      style: const TextStyle(
+                        color: AppColors.primaryOrange,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: List.generate(5, (index) {
+                      final double starValue = index + 1.0;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                        child: Stack(
+                          children: [
+                            Icon(
+                              _selectedRating >= starValue
+                                  ? Icons.star
+                                  : (_selectedRating >= starValue - 0.5
+                                      ? Icons.star_half
+                                      : Icons.star_outline),
+                              color: _selectedRating >= starValue - 0.5
+                                  ? AppColors.primaryOrange
+                                  : Colors.grey.withValues(alpha: 0.3),
+                              size: 48,
+                            ),
+                            Positioned.fill(
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: GestureDetector(
+                                      behavior: HitTestBehavior.opaque,
+                                      onTap: () => setState(() => _selectedRating = starValue - 0.5),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: GestureDetector(
+                                      behavior: HitTestBehavior.opaque,
+                                      onTap: () => setState(() => _selectedRating = starValue),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _saveEntry,
+                    child: const Text('Save Journey'),
+                  ),
                 ),
               ],
             ),
           ),
-        ),
-      );
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add City'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Add a city you have visited',
-                style: Theme.of(context).textTheme.headlineMedium),
-            const SizedBox(height: 16),
-
-            TextFormField(
-              controller: _cityNameController,
-              decoration: const InputDecoration(
-                labelText: 'City Name*',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            if (nameError != null)
-              Text(nameError!, style: const TextStyle(color: Colors.red)),
-            const SizedBox(height: 16),
-
-            TextFormField(
-              controller: _countryController,
-              decoration: const InputDecoration(
-                labelText: 'Country*',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            if (countryError != null)
-              Text(countryError!, style: const TextStyle(color: Colors.red)),
-            const SizedBox(height: 16),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: _buildDateInput(
-                      date: _arrivalDate,
-                      label: 'Arrival Date*',
-                      onTap: () => _pickDate(isArrival: true)
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildDateInput(
-                      date: _departureDate,
-                      label: 'Departure Date*',
-                      onTap: () => _pickDate(isArrival: false)
-                  ),
-                ),
-              ],
-            ),
-            if (_dateError != null)
-              Text(
-                _dateError!,
-                style: const TextStyle(color: Colors.red),
-              ),
-            const SizedBox(height: 16),
-
-            TextFormField(
-              controller: _commentController,
-              decoration: const InputDecoration(
-                labelText: 'Review Comment (optional)',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Rating', style: Theme.of(context).textTheme.titleMedium),
-                Text(
-                  '${_selectedRating.toStringAsFixed(1)} ★',
-                  style: const TextStyle(
-                    color: AppColors.primaryOrange,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Center(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: List.generate(5, (index) {
-                  final double starValue = index + 1.0;
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    child: Stack(
-                      children: [
-                        Icon(
-                          _selectedRating >= starValue
-                              ? Icons.star
-                              : (_selectedRating >= starValue - 0.5
-                                  ? Icons.star_half
-                                  : Icons.star_outline),
-                          color: _selectedRating >= starValue - 0.5
-                              ? AppColors.primaryOrange
-                              : Colors.grey.withValues(alpha: 0.3),
-                          size: 48,
-                        ),
-                        Positioned.fill(
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: GestureDetector(
-                                  behavior: HitTestBehavior.opaque,
-                                  onTap: () => setState(() => _selectedRating = starValue - 0.5),
-                                ),
-                              ),
-                              Expanded(
-                                child: GestureDetector(
-                                  behavior: HitTestBehavior.opaque,
-                                  onTap: () => setState(() => _selectedRating = starValue),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
-              ),
-            ),
-            const SizedBox(height: 32),
-
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: _saveEntry,
-                child: const Text('Save Journey'),
-              ),
-            ),
-          ],
-        ),
-      ),
+        );
+      },
     );
   }
 }
