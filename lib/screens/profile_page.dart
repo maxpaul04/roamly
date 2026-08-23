@@ -1,19 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:roamly/services/city_repository.dart';
+import 'package:roamly/widgets/city_entry_card.dart';
+import '../models/city_entry_model.dart';
 import '../services/auth_service.dart';
 import 'signup_page.dart';
 import 'login_page.dart';
 
-class ProfilePage extends StatelessWidget {
-  const ProfilePage({super.key});
+class ProfilePage extends StatefulWidget {
+  final CityRepository repository;
+  final int reloadTrigger;
+
+  const ProfilePage({
+    super.key,
+    required this.repository,
+    required this.reloadTrigger,
+  });
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  final _authService = AuthService();
+
+  void _showLogoutConfirmation() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to log out of Roamly?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _authService.signOut();
+            },
+            child: const Text('Logout', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final authService = AuthService();
 
     return StreamBuilder<User?>(
-      stream: authService.user,
+      stream: _authService.user,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -28,14 +67,14 @@ class ProfilePage extends StatelessWidget {
               actions: [
                 IconButton(
                   icon: const Icon(Icons.logout),
-                  onPressed: () => authService.signOut(),
+                  onPressed: _showLogoutConfirmation,
                 ),
               ],
             ),
-            body: Center(
+            body: SingleChildScrollView(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  const SizedBox(height: 32),
                   CircleAvatar(
                     radius: 40, 
                     backgroundColor: theme.colorScheme.primaryContainer,
@@ -46,6 +85,49 @@ class ProfilePage extends StatelessWidget {
                   Text(
                     user.displayName ?? user.email?.split('@')[0] ?? 'Traveler', 
                     style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 32),
+                  const Divider(height: 1),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Text('My History', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                  FutureBuilder<List<CityEntry>>(
+                    key: ValueKey(widget.reloadTrigger), // Force reload when city is added
+                    future: widget.repository.getEntries(user.uid),
+                    builder: (context, logSnapshot) {
+                      if (logSnapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      
+                      final logs = logSnapshot.data ?? [];
+                      if (logs.isEmpty) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 48.0),
+                          child: Column(
+                            children: [
+                              Icon(Icons.map_outlined, size: 48, color: theme.colorScheme.outline),
+                              const SizedBox(height: 16),
+                              const Text('No journeys logged yet.'),
+                            ],
+                          ),
+                        );
+                      }
+
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: logs.length,
+                        itemBuilder: (context, index) {
+                          return CityEntryCard(log: logs[index]);
+                        },
+                      );
+                    },
                   ),
                 ],
               ),

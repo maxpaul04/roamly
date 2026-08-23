@@ -23,7 +23,7 @@ class _MainNavigationState extends State<MainNavigation>{
   void _handleCityAdded() {
     setState(() {
       _reloadTrigger++;
-      _selectedIndex = 0; //go back to feed page when adding a city
+      _selectedIndex = 0; // Go back to feed page when adding a city
     });
   }
 
@@ -34,10 +34,8 @@ class _MainNavigationState extends State<MainNavigation>{
       const SearchPage(),
       AddCityPage(onSave: _handleCityAdded, repository: _repository),
       const NotificationsPage(),
-      const ProfilePage(),
+      ProfilePage(repository: _repository, reloadTrigger: _reloadTrigger),
     ];
-
-
 
     return Scaffold(
       body: pages[_selectedIndex],
