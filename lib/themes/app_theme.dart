@@ -23,10 +23,30 @@ class AppTheme {
         foregroundColor: AppColors.textPrimaryLight,
         elevation: 0,
       ),
-      
+
       // Global fix for the "cheap" flash: removes the ripple/splash effect
       splashColor: Colors.transparent,
       highlightColor: Colors.transparent,
+
+      // Consolidated Button Styles
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primaryOrange,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          minimumSize: const Size(double.infinity, 56),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.primaryOrange,
+          textStyle: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+      ),
 
       // Consolidated Input Styling
       inputDecorationTheme: InputDecorationTheme(
@@ -75,7 +95,13 @@ class AppTheme {
 
       textTheme: const TextTheme(
         displayLarge: TextStyle(color: AppColors.primaryOrange, fontWeight: FontWeight.bold),
+        displaySmall: TextStyle(
+          color: AppColors.textPrimaryLight,
+          fontWeight: FontWeight.bold,
+          height: 1.1,
+        ),
         headlineMedium: TextStyle(color: AppColors.primaryOrange, fontWeight: FontWeight.w600),
+        titleMedium: TextStyle(color: AppColors.textPrimaryLight, fontWeight: FontWeight.bold),
         bodyLarge: TextStyle(color: AppColors.textPrimaryLight),
         bodyMedium: TextStyle(color: AppColors.textSecondaryLight),
       ),
@@ -102,6 +128,26 @@ class AppTheme {
       // Global fix for the "cheap" flash: removes the ripple/splash effect
       splashColor: Colors.transparent,
       highlightColor: Colors.transparent,
+
+      // Consolidated Button Styles
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primaryOrange,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          minimumSize: const Size(double.infinity, 56),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.primaryOrange,
+          textStyle: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+      ),
 
       // Consolidated Input Styling
       inputDecorationTheme: InputDecorationTheme(
@@ -149,7 +195,13 @@ class AppTheme {
 
       textTheme: const TextTheme(
         displayLarge: TextStyle(color: AppColors.primaryOrange, fontWeight: FontWeight.bold),
+        displaySmall: TextStyle(
+          color: AppColors.textPrimaryDark,
+          fontWeight: FontWeight.bold,
+          height: 1.1,
+        ),
         headlineMedium: TextStyle(color: AppColors.primaryOrange, fontWeight: FontWeight.w600),
+        titleMedium: TextStyle(color: AppColors.textPrimaryDark, fontWeight: FontWeight.bold),
         bodyLarge: TextStyle(color: AppColors.textPrimaryDark),
         bodyMedium: TextStyle(color: AppColors.textSecondaryDark),
         bodySmall: TextStyle(color: AppColors.textSecondaryDark),
