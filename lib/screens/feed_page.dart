@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:roamly/services/city_repository.dart';
 import '../models/city_entry_model.dart';
-import '../services/sqflite_city_repository.dart';
 import '../widgets/city_entry_card.dart';
 
 class FeedPage extends StatefulWidget {
@@ -19,7 +18,6 @@ class FeedPage extends StatefulWidget {
 }
 
 class _FeedPageState extends State<FeedPage> {
-  final _repository = SqfliteCityRepository();
   List<CityEntry> _logs = [];
 
   @override
@@ -37,7 +35,7 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   Future<void> _loadData() async {
-    final data = await _repository.getEntries('1');
+    final data = await widget.repository.getAllEntries();
     setState(() {
       _logs = data;
     });
@@ -49,12 +47,14 @@ class _FeedPageState extends State<FeedPage> {
       appBar: AppBar(
         title: const Text('roamly'),
       ),
-      body: ListView(
-        children: [
-          for (final log in _logs)
-            CityEntryCard(log: log),
-        ],
-      ),
+      body: _logs.isEmpty 
+        ? const Center(child: Text('No journeys logged yet.'))
+        : ListView(
+            children: [
+              for (final log in _logs)
+                CityEntryCard(log: log),
+            ],
+          ),
     );
   }
 }

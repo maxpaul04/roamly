@@ -1,8 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:roamly/services/city_repository.dart';
 import '../models/city_entry_model.dart';
 import '../themes/colors.dart';
+import 'login_page.dart';
 
 class AddCityPage extends StatefulWidget {
   final VoidCallback onSave;
@@ -68,6 +70,9 @@ class _AddCityPageState extends State<AddCityPage> {
   }
 
   Future<void> _saveEntry() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
     final name = _cityNameController.text.trim();
     final country = _countryController.text.trim();
 
@@ -105,9 +110,9 @@ class _AddCityPageState extends State<AddCityPage> {
 
     final newCity = CityEntry(
       id: CityEntry.UNSAVED_ID,
-      userId: '1', 
-      name: _cityNameController.text.trim(),
-      country: _countryController.text.trim(),
+      userId: user.uid,
+      name: name,
+      country: country,
       arrivalDate: _arrivalDate!,
       departureDate: _departureDate!,
       rating: _selectedRating,
@@ -140,6 +145,49 @@ class _AddCityPageState extends State<AddCityPage> {
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Add City')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.lock_outline,
+                  size: 64,
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Sign In Required',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'You need to be logged in to log your travels.',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const LoginPage()),
+                    );
+                  },
+                  child: const Text('Go to Login'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add City'),
@@ -177,7 +225,6 @@ class _AddCityPageState extends State<AddCityPage> {
 
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
-
               children: [
                 Expanded(
                   child: _buildDateInput(
@@ -203,7 +250,6 @@ class _AddCityPageState extends State<AddCityPage> {
               ),
             const SizedBox(height: 16),
 
-
             TextFormField(
               controller: _commentController,
               decoration: const InputDecoration(
@@ -213,7 +259,6 @@ class _AddCityPageState extends State<AddCityPage> {
             ),
             const SizedBox(height: 24),
 
-            //Star-Rating Selection with help from AI
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

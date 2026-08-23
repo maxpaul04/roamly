@@ -18,6 +18,16 @@ class SqfliteCityRepository implements CityRepository{
   }
 
   @override
+  Future<List<CityEntry>> getAllEntries() async {
+    final db = await _dbHelper.database;
+    final maps = await db.query(
+      'city_entries',
+      orderBy: 'createdAt DESC',
+    );
+    return maps.map((m) => CityEntry.fromMap(m)).toList();
+  }
+
+  @override
   Future<CityEntry> addEntry(CityEntry entry) async {
     final db = await _dbHelper.database;
     final map = entry.toMap()..remove('id');
@@ -32,18 +42,18 @@ class SqfliteCityRepository implements CityRepository{
     await db.update(
         'city_entries',
         entry.toMap(),
-        where: 'id = ?',
-        whereArgs: [entry.id],
+        where: 'id = ? AND userId = ?',
+        whereArgs: [entry.id, entry.userId],
     );
   }
 
   @override
-  Future<void> deleteEntry(int id) async {
+  Future<void> deleteEntry(int id, String userId) async {
     final db = await _dbHelper.database;
     await db.delete(
       'city_entries',
-      where: 'id = ?',
-      whereArgs: [id],
+      where: 'id = ? AND userId = ?',
+      whereArgs: [id, userId],
     );
   }
 }
