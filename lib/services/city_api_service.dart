@@ -12,8 +12,8 @@ class CitySearchResult {
   final String name;
   final String country;
   final String countryCode;
-  final String latitude;
-  final String longitude;
+  final double latitude;
+  final double longitude;
 
   CitySearchResult({
     required this.name,
@@ -28,8 +28,8 @@ class CitySearchResult {
       name: json['name'] ?? '',
       country: json['country'] ?? '',
       countryCode: json['countryCode'] ?? '',
-      latitude: json['latitude']?.toString() ?? '',
-      longitude: json['longitude']?.toString() ?? '',
+      latitude: (json['latitude']! as num?)?.toDouble() ?? 0.0,
+      longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }
