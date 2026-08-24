@@ -46,6 +46,7 @@ class _AddCityPageState extends State<AddCityPage> {
     _cityNameController.dispose();
     _countryController.dispose();
     _commentController.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
@@ -128,18 +129,26 @@ class _AddCityPageState extends State<AddCityPage> {
   //immediately searh and burn API-calls
   void _whenCitySearchChanged(String query) async {
     _debounce?.cancel();
-    setState(() => selectedResult = null); // typing again invalidates the old pick
+    setState(() {
+      selectedResult = null;
+      results = []; // Clear results while typing new query
+    });
 
-    _debounce = Timer(const Duration(milliseconds: 400), () async {
+    _debounce = Timer(const Duration(milliseconds: 500), () async {
       if (query.trim().length < 2) {
-        setState(() => results = []);
+        setState(() {
+          results = [];
+          _isSearching = false;
+        });
         return;
       }
+
       setState(() => _isSearching = true);
+      
       try {
-        var results = await apiService.searchCities(query);
+        final fetchedResults = await apiService.searchCities(query);
         setState(() {
-          results = results;
+          results = fetchedResults;
           _isSearching = false;
         });
       } catch (e) {
@@ -158,6 +167,7 @@ class _AddCityPageState extends State<AddCityPage> {
       _countryController.text = result.country;
       results = [];
     });
+    FocusScope.of(context).unfocus(); // Close keyboard after selection
   }
 
   Widget _buildDateInput({
@@ -247,34 +257,49 @@ class _AddCityPageState extends State<AddCityPage> {
                   decoration: const InputDecoration(
                     labelText: 'City Name*',
                     border: OutlineInputBorder(),
+                    hintText: 'Start typing to search...',
                   ),
                   onChanged: _whenCitySearchChanged,
                 ),
                 if (_isSearching)
-                  const Center(child: CircularProgressIndicator()),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8.0),
+                    child: Center(child: LinearProgressIndicator()),
+                  ),
                 if (results.isNotEmpty)
-                  Container(
+                  Card(
+                    elevation: 4,
                     margin: const EdgeInsets.only(top: 4),
-                    decoration: BoxDecoration(border: Border.all(color: Colors.grey)),
-                    child: Column(
-                      children: results.map((city) {
-                        return ListTile(
-                          title: Text(city.name),
-                          subtitle: Text(city.country),
-                          onTap: () => _onCitySelected(city),
-                        );
-                      }).toList(),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 250),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: results.length,
+                        itemBuilder: (context, index) {
+                          final city = results[index];
+                          return ListTile(
+                            title: Text(city.name),
+                            subtitle: Text(city.country),
+                            onTap: () => _onCitySelected(city),
+                          );
+                        },
+                      ),
                     ),
                   ),
                 if (nameError != null)
-                  Text(nameError!, style: const TextStyle(color: Colors.red)),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(nameError!, style: const TextStyle(color: Colors.red)),
+                  ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _countryController,
-                  readOnly: true,
-                  decoration: const InputDecoration(
+                  enabled: false,
+                  decoration: InputDecoration(
                     labelText: 'Country (auto-filled)*',
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
+                    filled: true,
+                    fillColor: Colors.grey.withValues(alpha: 0.1),
                   ),
                 ),
                 if (countryError != null)
