@@ -10,6 +10,9 @@ class CityEntry {
   final double rating;
   final String? comment;
   final DateTime createdAt;
+  final double latitude;
+  final double longitude;
+  final String? pictureUrl;
 
   CityEntry({
     required this.id,
@@ -21,6 +24,10 @@ class CityEntry {
     required this.rating,
     this.comment,
     DateTime? createdAt,
+    required this.latitude,
+    required this.longitude,
+    this.pictureUrl,
+
   }) : createdAt = createdAt ?? DateTime.now();
 
   Map<String, dynamic> toMap() {
@@ -34,6 +41,9 @@ class CityEntry {
       'rating': rating,
       'comment': comment,
       'createdAt': createdAt.toIso8601String(),
+      'latitude': latitude,
+      'longitude': longitude,
+      'pictureUrl': pictureUrl,
     };
   }
 
@@ -48,28 +58,33 @@ class CityEntry {
       rating: (map['rating'] as num).toDouble(),
       comment: map['comment'] as String?,
       createdAt: DateTime.parse(map['createdAt'] as String),
+      latitude: map['latitude'] as double,
+      longitude: map['longitude'] as double,
+      pictureUrl: map['pictureUrl'] as String?,
     );
   }
 
   CityEntry copyWith({
     int? id,
-    String? name,
-    String? country,
     DateTime? arrivalDate,
     DateTime? departureDate,
     double? rating,
     String? comment,
+    String? pictureUrl,
   }) {
     return CityEntry(
       id: id ?? this.id,
       userId: userId,
-      name: name ?? this.name,
-      country: country ?? this.country,
+      name: name,
+      country: country,
       arrivalDate: arrivalDate ?? this.arrivalDate,
       departureDate: departureDate ?? this.departureDate,
       rating: rating ?? this.rating,
       comment: comment ?? this.comment,
       createdAt: createdAt,
+      latitude: latitude,
+      longitude: longitude,
+      pictureUrl: pictureUrl ?? this.pictureUrl,
     );
   }
 }

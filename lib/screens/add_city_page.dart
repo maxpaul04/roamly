@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:roamly/services/city_repository.dart';
 import '../models/city_entry_model.dart';
+import '../services/city_api_service.dart';
 import '../themes/colors.dart';
 import 'login_page.dart';
 
@@ -24,6 +27,12 @@ class _AddCityPageState extends State<AddCityPage> {
   final _cityNameController = TextEditingController();
   final _countryController = TextEditingController();
   final _commentController = TextEditingController();
+  final CityApiService apiService = CityApiService();
+  List<CitySearchResult> results = [];
+  CitySearchResult? selectedResult;
+  Timer? _debounce;
+  bool _isSearching = false;
+
   double _selectedRating = 5.0;
 
   DateTime? _arrivalDate;
@@ -82,12 +91,8 @@ class _AddCityPageState extends State<AddCityPage> {
     });
 
     bool hasErrors = false;
-    if (name.isEmpty) {
-      nameError = 'Please enter a city name';
-      hasErrors = true;
-    }
-    if (country.isEmpty) {
-      countryError = 'Please enter a country';
+    if (selectedResult == null) {
+      nameError = 'Please select a city from the list';
       hasErrors = true;
     }
     if (_arrivalDate == null || _departureDate == null) {
@@ -110,10 +115,49 @@ class _AddCityPageState extends State<AddCityPage> {
       departureDate: _departureDate!,
       rating: _selectedRating,
       comment: _commentController.text.trim(),
+      createdAt: DateTime.now(),
+      latitude: selectedResult!.latitude,
+      longitude: selectedResult!.longitude,
     );
 
     await widget.repository.addEntry(newCity);
     widget.onSave();
+  }
+
+  //Code here generated with help from AI --> resets search on every keystroke with a small delay not to
+  //immediately searh and burn API-calls
+  void _whenCitySearchChanged(String query) async {
+    _debounce?.cancel();
+    setState(() => selectedResult = null); // typing again invalidates the old pick
+
+    _debounce = Timer(const Duration(milliseconds: 400), () async {
+      if (query.trim().length < 2) {
+        setState(() => results = []);
+        return;
+      }
+      setState(() => _isSearching = true);
+      try {
+        var results = await apiService.searchCities(query);
+        setState(() {
+          results = results;
+          _isSearching = false;
+        });
+      } catch (e) {
+        setState(() {
+          results = [];
+          _isSearching = false;
+        });
+      }
+    });
+  }
+
+  void _onCitySelected(CitySearchResult result) {
+    setState(() {
+      selectedResult = result;
+      _cityNameController.text = result.name;
+      _countryController.text = result.country;
+      results = [];
+    });
   }
 
   Widget _buildDateInput({
@@ -204,14 +248,32 @@ class _AddCityPageState extends State<AddCityPage> {
                     labelText: 'City Name*',
                     border: OutlineInputBorder(),
                   ),
+                  onChanged: _whenCitySearchChanged,
                 ),
+                if (_isSearching)
+                  const Center(child: CircularProgressIndicator()),
+                if (results.isNotEmpty)
+                  Container(
+                    margin: const EdgeInsets.only(top: 4),
+                    decoration: BoxDecoration(border: Border.all(color: Colors.grey)),
+                    child: Column(
+                      children: results.map((city) {
+                        return ListTile(
+                          title: Text(city.name),
+                          subtitle: Text(city.country),
+                          onTap: () => _onCitySelected(city),
+                        );
+                      }).toList(),
+                    ),
+                  ),
                 if (nameError != null)
                   Text(nameError!, style: const TextStyle(color: Colors.red)),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _countryController,
+                  readOnly: true,
                   decoration: const InputDecoration(
-                    labelText: 'Country*',
+                    labelText: 'Country (auto-filled)*',
                     border: OutlineInputBorder(),
                   ),
                 ),
