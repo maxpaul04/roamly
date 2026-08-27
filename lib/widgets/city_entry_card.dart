@@ -45,12 +45,12 @@ class CityEntryCard extends StatelessWidget {
               ],
             ),
 
-            // Subtitle Row: Country and Date
+            // Subtitle Row: Country, Continent and Date
             const SizedBox(height: 4),
             Row(
               children: [
                 Text(
-                  log.country,
+                  '${log.country} (${log.continent})',
                   style: Theme
                       .of(context)
                       .textTheme
