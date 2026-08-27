@@ -112,6 +112,7 @@ class _AddCityPageState extends State<AddCityPage> {
       userId: user.uid,
       name: name,
       country: country,
+      continent: selectedResult!.continent,
       arrivalDate: _arrivalDate!,
       departureDate: _departureDate!,
       rating: _selectedRating,
