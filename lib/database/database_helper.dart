@@ -10,14 +10,14 @@ class DatabaseHelper {
     _database ??= await _initDatabase();
     return _database!;
   }
-  
+
   Future<Database> _initDatabase() async {
     final path = join(await getDatabasesPath(), 'roamly.db');
     return openDatabase(
-        path,
-      version: 2,
-      onCreate: (db, version) {
-        return db.execute('''
+      path,
+      version: 3,
+      onCreate: (db, version) async {
+        await db.execute('''
         CREATE TABLE city_entries(
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           userId TEXT NOT NULL,
@@ -27,9 +27,36 @@ class DatabaseHelper {
           departureDate TEXT NOT NULL,
           rating REAL NOT NULL,
           comment TEXT,
-          createdAt TEXT NOT NULL
-          )
+          createdAt TEXT NOT NULL,
+          latitude REAL,
+          longitude REAL,
+          pictureUrl TEXT
+        )
         ''');
+        
+        await db.execute('''
+        CREATE TABLE users(
+          uid TEXT PRIMARY KEY,
+          email TEXT NOT NULL,
+          username TEXT NOT NULL
+        )
+        ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute('ALTER TABLE city_entries ADD COLUMN latitude REAL');
+          await db.execute('ALTER TABLE city_entries ADD COLUMN longitude REAL');
+          await db.execute('ALTER TABLE city_entries ADD COLUMN pictureUrl TEXT');
+        }
+        if (oldVersion < 3) {
+          await db.execute('''
+          CREATE TABLE users(
+            uid TEXT PRIMARY KEY,
+            email TEXT NOT NULL,
+            username TEXT NOT NULL
+          )
+          ''');
+        }
       },
     );
   }

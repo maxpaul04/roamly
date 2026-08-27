@@ -39,11 +39,12 @@ class SqfliteCityRepository implements CityRepository{
   @override
   Future<void> updateEntry(CityEntry entry) async {
     final db = await _dbHelper.database;
+    final map = entry.toMap()..remove('id');
     await db.update(
-        'city_entries',
-        entry.toMap(),
-        where: 'id = ? AND userId = ?',
-        whereArgs: [entry.id, entry.userId],
+      'city_entries',
+      map,
+      where: 'id = ? AND userId = ?',
+      whereArgs: [entry.id, entry.userId],
     );
   }
 
