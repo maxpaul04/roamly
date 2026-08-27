@@ -23,6 +23,7 @@ class DatabaseHelper {
           userId TEXT NOT NULL,
           name TEXT NOT NULL,
           country TEXT NOT NULL,
+          continent TEXT NOT NULL,
           arrivalDate TEXT NOT NULL,
           departureDate TEXT NOT NULL,
           rating REAL NOT NULL,

@@ -5,6 +5,7 @@ class CityEntry {
   final String userId;
   final String name;
   final String country;
+  final String continent;
   final DateTime arrivalDate;
   final DateTime departureDate;
   final double rating;
@@ -19,6 +20,7 @@ class CityEntry {
     required this.userId,
     required this.name,
     required this.country,
+    required this.continent,
     required this.arrivalDate,
     required this.departureDate,
     required this.rating,
@@ -27,7 +29,6 @@ class CityEntry {
     required this.latitude,
     required this.longitude,
     this.pictureUrl,
-
   }) : createdAt = createdAt ?? DateTime.now();
 
   Map<String, dynamic> toMap() {
@@ -36,6 +37,7 @@ class CityEntry {
       'userId': userId,
       'name': name,
       'country': country,
+      'continent': continent,
       'arrivalDate': arrivalDate.toIso8601String(),
       'departureDate': departureDate.toIso8601String(),
       'rating': rating,
@@ -53,13 +55,14 @@ class CityEntry {
       userId: map['userId'] as String,
       name: map['name'] as String,
       country: map['country'] as String,
+      continent: map['continent'] as String? ?? 'Unknown',
       arrivalDate: DateTime.parse(map['arrivalDate'] as String),
       departureDate: DateTime.parse(map['departureDate'] as String),
       rating: (map['rating'] as num).toDouble(),
       comment: map['comment'] as String?,
       createdAt: DateTime.parse(map['createdAt'] as String),
-      latitude: map['latitude'] as double,
-      longitude: map['longitude'] as double,
+      latitude: (map['latitude'] as num).toDouble(),
+      longitude: (map['longitude'] as num).toDouble(),
       pictureUrl: map['pictureUrl'] as String?,
     );
   }
@@ -77,6 +80,7 @@ class CityEntry {
       userId: userId,
       name: name,
       country: country,
+      continent: continent,
       arrivalDate: arrivalDate ?? this.arrivalDate,
       departureDate: departureDate ?? this.departureDate,
       rating: rating ?? this.rating,
