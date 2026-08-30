@@ -8,30 +8,57 @@ class CityEntryCard extends StatelessWidget {
 
   const CityEntryCard({super.key, required this.log});
 
+  String _formatDateRange(DateTime start, DateTime end) {
+    final DateFormat monthYear = DateFormat('MMM yyyy');
+    final DateFormat monthOnly = DateFormat('MMM');
+
+    if (start.year != end.year) {
+      return '${monthYear.format(start)} — ${monthYear.format(end)}';
+    } else if (start.month != end.month) {
+      return '${monthOnly.format(start)} — ${monthYear.format(end)}';
+    } else {
+      return monthYear.format(start);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: const Color(0xFF242438), // Roamly card surface
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: Text(
-                    log.name,
-                    style: Theme
-                        .of(context)
-                        .textTheme
-                        .headlineSmall
-                        ?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        log.name,
+                        style: const TextStyle(
+                          color: Color(0xFFF5F0EB),
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '@${log.userName}',
+                        style: const TextStyle(
+                          color: Color(0xFF7A6F65),
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Text(
@@ -39,49 +66,49 @@ class CityEntryCard extends StatelessWidget {
                   style: const TextStyle(
                     color: AppColors.primaryOrange,
                     fontWeight: FontWeight.bold,
-                    fontSize: 18,
+                    fontSize: 22, // Slightly bigger rating
                   ),
                 ),
               ],
             ),
 
-            // Subtitle Row: Country, Continent and Date
-            const SizedBox(height: 4),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Text(
                   '${log.country} (${log.continent})',
-                  style: Theme
-                      .of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(
-                    color: AppColors.primaryOrange, // Accent color for location
+                  style: const TextStyle(
+                    color: AppColors.primaryOrange,
                     fontWeight: FontWeight.w500,
+                    fontSize: 14,
                   ),
                 ),
-                const Text(' • '),
+                const Text(
+                  ' • ',
+                  style: TextStyle(color: Color(0xFF7A6F65)),
+                ),
                 Text(
-                  DateFormat('MMM yyyy').format(log.arrivalDate),
-                  style: Theme
-                      .of(context)
-                      .textTheme
-                      .bodySmall,
+                  _formatDateRange(log.arrivalDate, log.departureDate),
+                  style: const TextStyle(
+                    color: Color(0xFF7A6F65),
+                    fontSize: 14,
+                  ),
                 ),
               ],
             ),
             
-            const Divider(height: 24),
-            Text(
-              log.comment ?? "No comment yet",
-              style: Theme
-                  .of(context)
-                  .textTheme
-                  .bodyLarge
-                  ?.copyWith(
-                fontStyle: FontStyle.italic,
+            if (log.comment != null && log.comment!.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Text(
+                log.comment!,
+                style: const TextStyle(
+                  color: Color(0xFFF5F0EB),
+                  fontStyle: FontStyle.italic,
+                  fontSize: 15,
+                  height: 1.4,
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ),
