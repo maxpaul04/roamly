@@ -14,33 +14,46 @@ class _SignupPageState extends State<SignupPage> {
   final _passwordController = TextEditingController();
   final _authService = AuthService();
   bool _isLoading = false;
+  String? _errorMessage;
 
   void _handleSignUp() async {
     if (_usernameController.text.trim().isEmpty || 
         _emailController.text.trim().isEmpty || 
         _passwordController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in all fields')),
-      );
+      setState(() {
+        _errorMessage = 'Please fill in all fields';
+      });
       return;
     }
 
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    
     try {
       await _authService.signUp(
         _emailController.text.trim(),
         _passwordController.text.trim(),
         _usernameController.text.trim(),
       );
-      if (mounted) Navigator.pop(context); 
+      if (mounted) {
+        Navigator.pop(context); 
+      }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
+        setState(() {
+          _errorMessage = e.toString().contains('Username is already taken')
+              ? 'Username is already taken'
+              : 'Something went wrong. Please try again';
+        });
       }
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -106,6 +119,15 @@ class _SignupPageState extends State<SignupPage> {
                 ),
                 obscureText: true,
               ),
+              const SizedBox(height: 5),
+
+              if (_errorMessage != null) ...[
+                Text(
+                  _errorMessage!,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ],
+              
               const SizedBox(height: 32),
               
               _isLoading 

@@ -14,30 +14,41 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
   final _authService = AuthService();
   bool _isLoading = false;
+  String? _errorMessage;
 
   void _handleLogin() async {
     if (_emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter email and password')),
-      );
+      setState(() {
+        _errorMessage = 'Please enter email and password';
+      });
       return;
     }
 
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
     try {
       await _authService.signIn(
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
-      if (mounted) Navigator.pop(context); 
+      if (mounted) {
+        Navigator.pop(context);
+      }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
+        setState(() {
+          _errorMessage = 'Invalid email or password. Please try again.';
+        });
       }
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -93,7 +104,15 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 obscureText: true,
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 5),
+
+              if (_errorMessage != null) ...[
+                Text(
+                  _errorMessage!,
+                  style: const TextStyle(color: Colors.red),
+                ),
+                const SizedBox(height: 16),
+              ],
               
               _isLoading 
                 ? const Center(child: CircularProgressIndicator()) 
