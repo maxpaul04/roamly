@@ -32,7 +32,7 @@ class DatabaseHelper {
           createdAt TEXT NOT NULL,
           latitude REAL,
           longitude REAL,
-          pictureUrl TEXT
+          imagePath TEXT
         )
         ''');
         
@@ -48,7 +48,9 @@ class DatabaseHelper {
         if (oldVersion < 2) {
           await db.execute('ALTER TABLE city_entries ADD COLUMN latitude REAL');
           await db.execute('ALTER TABLE city_entries ADD COLUMN longitude REAL');
-          await db.execute('ALTER TABLE city_entries ADD COLUMN pictureUrl TEXT');
+          await db.execute('ALTER TABLE city_entries ADD COLUMN imagePath TEXT');
+        } else if (oldVersion == 2) {
+           await db.execute('ALTER TABLE city_entries RENAME COLUMN pictureUrl TO imagePath');
         }
         if (oldVersion < 3) {
           await db.execute('''

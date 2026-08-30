@@ -14,7 +14,7 @@ class CityEntry {
   final DateTime createdAt;
   final double latitude;
   final double longitude;
-  final String? pictureUrl;
+  final String? imagePath;
 
   CityEntry({
     required this.id,
@@ -30,7 +30,7 @@ class CityEntry {
     DateTime? createdAt,
     required this.latitude,
     required this.longitude,
-    this.pictureUrl,
+    this.imagePath,
   }) : createdAt = createdAt ?? DateTime.now();
 
   Map<String, dynamic> toMap() {
@@ -48,7 +48,7 @@ class CityEntry {
       'createdAt': createdAt.toIso8601String(),
       'latitude': latitude,
       'longitude': longitude,
-      'pictureUrl': pictureUrl,
+      'imagePath': imagePath,
     };
   }
 
@@ -67,7 +67,7 @@ class CityEntry {
       createdAt: DateTime.parse(map['createdAt'] as String),
       latitude: (map['latitude'] as num).toDouble(),
       longitude: (map['longitude'] as num).toDouble(),
-      pictureUrl: map['pictureUrl'] as String?,
+      imagePath: map['imagePath'] as String?,
     );
   }
 
@@ -78,7 +78,7 @@ class CityEntry {
     DateTime? departureDate,
     double? rating,
     String? comment,
-    String? pictureUrl,
+    String? imagePath,
   }) {
     return CityEntry(
       id: id ?? this.id,
@@ -94,7 +94,7 @@ class CityEntry {
       createdAt: createdAt,
       latitude: latitude,
       longitude: longitude,
-      pictureUrl: pictureUrl ?? this.pictureUrl,
+      imagePath: imagePath ?? this.imagePath,
     );
   }
 }
