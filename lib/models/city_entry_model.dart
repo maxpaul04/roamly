@@ -3,6 +3,7 @@ class CityEntry {
 
   final int id;
   final String userId;
+  final String userName;
   final String name;
   final String country;
   final String continent;
@@ -18,6 +19,7 @@ class CityEntry {
   CityEntry({
     required this.id,
     required this.userId,
+    required this.userName,
     required this.name,
     required this.country,
     required this.continent,
@@ -35,6 +37,7 @@ class CityEntry {
     return {
       'id': id,
       'userId': userId,
+      'userName': userName,
       'name': name,
       'country': country,
       'continent': continent,
@@ -53,6 +56,7 @@ class CityEntry {
     return CityEntry(
       id: map['id'] as int,
       userId: map['userId'] as String,
+      userName: map['userName'] as String,
       name: map['name'] as String,
       country: map['country'] as String,
       continent: map['continent'] as String? ?? 'Unknown',
@@ -69,6 +73,7 @@ class CityEntry {
 
   CityEntry copyWith({
     int? id,
+    String? userName,
     DateTime? arrivalDate,
     DateTime? departureDate,
     double? rating,
@@ -78,6 +83,7 @@ class CityEntry {
     return CityEntry(
       id: id ?? this.id,
       userId: userId,
+      userName: userName ?? this.userName,
       name: name,
       country: country,
       continent: continent,

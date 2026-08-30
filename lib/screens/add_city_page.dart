@@ -110,6 +110,7 @@ class _AddCityPageState extends State<AddCityPage> {
     final newCity = CityEntry(
       id: CityEntry.UNSAVED_ID,
       userId: user.uid,
+      userName: user.displayName!,
       name: name,
       country: country,
       continent: selectedResult!.continent,

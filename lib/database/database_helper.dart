@@ -21,6 +21,7 @@ class DatabaseHelper {
         CREATE TABLE city_entries(
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           userId TEXT NOT NULL,
+          userName TEXT NOT NULL,
           name TEXT NOT NULL,
           country TEXT NOT NULL,
           continent TEXT NOT NULL,

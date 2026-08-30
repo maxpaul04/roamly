@@ -11,8 +11,8 @@ class AuthService {
   Stream<User?> get user => _auth.authStateChanges();
 
   // Sign up with email, password, and username
-  Future<UserCredential?> signUp(String email, String password, String username) async {
-    if (await _userRepository.isUsernameTaken(username)) {
+  Future<UserCredential?> signUp(String email, String password, String userName) async {
+    if (await _userRepository.isUsernameTaken(userName)) {
       throw Exception('Username is already taken');
     }
 
@@ -23,13 +23,13 @@ class AuthService {
 
     if (credential.user != null) {
       // Update display name in Firebase Auth
-      await credential.user?.updateDisplayName(username);
+      await credential.user?.updateDisplayName(userName);
 
       // Sync user data to SQFlite
       final newUser = UserModel(
         uid: credential.user!.uid,
         email: email,
-        username: username,
+        userName: userName,
       );
       await _userRepository.saveUser(newUser);
     }
