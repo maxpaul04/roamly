@@ -43,7 +43,7 @@ class _SignupPageState extends State<SignupPage> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = e.toString().contains('Username is already taken')
+          _errorMessage = e.toString().contains('Username already taken')
               ? 'Username is already taken'
               : 'Something went wrong. Please try again';
         });
