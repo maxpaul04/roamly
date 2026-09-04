@@ -1,11 +1,14 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:roamly/services/city_repository.dart';
 import '../models/city_entry_model.dart';
 import '../services/city_api_service.dart';
+import '../services/image_storage_service.dart';
 import '../themes/colors.dart';
 import 'login_page.dart';
 
@@ -28,12 +31,14 @@ class _AddCityPageState extends State<AddCityPage> {
   final _countryController = TextEditingController();
   final _commentController = TextEditingController();
   final CityApiService apiService = CityApiService();
+
   List<CitySearchResult> results = [];
   CitySearchResult? selectedResult;
   Timer? _debounce;
   bool _isSearching = false;
 
   double _selectedRating = 5.0;
+  File? _pickedImage;
 
   DateTime? _arrivalDate;
   DateTime? _departureDate;
@@ -78,6 +83,17 @@ class _AddCityPageState extends State<AddCityPage> {
     });
   }
 
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedImage = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedImage != null) {
+      setState(() {
+        _pickedImage = File(pickedImage.path);
+      });
+    }
+  }
+
   Future<void> _saveEntry() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -107,10 +123,15 @@ class _AddCityPageState extends State<AddCityPage> {
 
     if (hasErrors) return;
 
+    String? imagePath;
+    if (_pickedImage != null) {
+      imagePath = await ImageStorageService().saveImage(_pickedImage!);
+    }
+
     final newCity = CityEntry(
       id: CityEntry.UNSAVED_ID,
       userId: user.uid,
-      userName: user.displayName!,
+      userName: user.displayName ?? 'Traveler',
       name: name,
       country: country,
       continent: selectedResult!.continent,
@@ -121,14 +142,14 @@ class _AddCityPageState extends State<AddCityPage> {
       createdAt: DateTime.now(),
       latitude: selectedResult!.latitude,
       longitude: selectedResult!.longitude,
+      imagePath: imagePath,
     );
 
     await widget.repository.addEntry(newCity);
     widget.onSave();
   }
 
-  //Code here generated with help from AI --> resets search on every keystroke with a small delay not to
-  //immediately searh and burn API-calls
+  //Code here generated with help from AI --> resets search on every keystroke with a small delay not to immediately search and burn API-calls
   void _whenCitySearchChanged(String query) async {
     _debounce?.cancel();
     setState(() {
@@ -337,7 +358,35 @@ class _AddCityPageState extends State<AddCityPage> {
                     border: OutlineInputBorder(),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
+                GestureDetector(
+                  onTap: _pickImage,
+                  child: Container(
+                    constraints: const BoxConstraints(minHeight: 160),
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceCardDark,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: _pickedImage != null
+                        ? Image.file(
+                            _pickedImage!,
+                            fit: BoxFit.fitWidth,
+                          )
+                        : const SizedBox(
+                            height: 160,
+                            child: Center(
+                              child: Icon(
+                                Icons.add_a_photo_outlined,
+                                color: AppColors.textSecondaryLight,
+                                size: 32,
+                              ),
+                            ),
+                          ),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

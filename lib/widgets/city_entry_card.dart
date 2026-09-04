@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/city_entry_model.dart';
@@ -96,6 +97,18 @@ class CityEntryCard extends StatelessWidget {
                 ),
               ],
             ),
+
+            if (log.imagePath != null && log.imagePath!.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.file(
+                  File(log.imagePath!),
+                  width: double.infinity,
+                  fit: BoxFit.fitWidth,
+                ),
+              ),
+            ],
             
             if (log.comment != null && log.comment!.isNotEmpty) ...[
               const SizedBox(height: 16),

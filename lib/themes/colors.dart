@@ -13,6 +13,7 @@ class AppColors {
   // Dark Mode Palette
   static const Color backgroundDark = Color(0xFF1A1A2E);  // Deep Navy
   static const Color surfaceDark = Color(0xFF1A1A2E);     // Deep Navy
+  static const Color surfaceCardDark = Color(0xFF242438); // Deep Card Surface
   static const Color textPrimaryDark = Color(0xFFF5F0EB); // Off-white
   static const Color textSecondaryDark = Color(0xFFB0A8A0); // Muted Off-white (for secondary text)
 }
