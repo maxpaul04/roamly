@@ -45,7 +45,7 @@ class SqfliteWishlistRepository implements WishlistRepository {
   }
 
   @override
-  Future<bool> isWishlisted(String userId, String cityName, double latitude, double longitude) async {
+  Future<WishlistEntry?> isWishlisted(String userId, String cityName, double latitude, double longitude) async {
     final db = await _dbHelper.database;
     final result = await db.query(
       'wishlist_entries',
@@ -53,6 +53,7 @@ class SqfliteWishlistRepository implements WishlistRepository {
       whereArgs: [userId, cityName, latitude, longitude],
       limit: 1,
     );
-    return result.isNotEmpty;
+    if (result.isEmpty) return null;
+    return WishlistEntry.fromMap(result.first);
   }
 }

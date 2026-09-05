@@ -1,8 +1,13 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:roamly/models/wishlist_entry_model.dart';
+import '../services/wishlist_repository.dart';
 import '../services/city_api_service.dart';
 import '../services/mock_city_rating_service.dart';
+import '../services/sqflite_wishlist_repository.dart';
 import '../themes/colors.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 enum SearchCategory { cities, users }
 
@@ -16,6 +21,7 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   final CityApiService _apiService = CityApiService();
   final TextEditingController _searchController = TextEditingController();
+  final WishlistRepository _wishlistRepository = SqfliteWishlistRepository();
   
   SearchCategory _selectedCategory = SearchCategory.cities;
   List<CitySearchResult> _cityResults = [];
@@ -69,7 +75,7 @@ class _SearchPageState extends State<SearchPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _CityDetailsSheet(city: city),
+      builder: (context) => _CityDetailsSheet(city: city, wishlistRepository: _wishlistRepository),
     );
   }
 
@@ -247,8 +253,9 @@ class _SearchPageState extends State<SearchPage> {
 
 class _CityDetailsSheet extends StatefulWidget {
   final CitySearchResult city;
+  final WishlistRepository wishlistRepository;
 
-  const _CityDetailsSheet({required this.city});
+  const _CityDetailsSheet({required this.city, required this.wishlistRepository});
 
   @override
   State<_CityDetailsSheet> createState() => _CityDetailsSheetState();
@@ -261,12 +268,53 @@ class _CityDetailsSheetState extends State<_CityDetailsSheet> {
   late final double _averageRating;
   final _ratingService = MockCityRatingService();
 
+  WishlistEntry? _wishlistentry;
+  bool _isLoadingWishlistStatus = true;
+
   @override
   void initState() {
     super.initState();
     // Requirements: generate exactly once and store in local state for the sheet's lifetime
     _ratingDistribution = _ratingService.generateRatingDistribution();
     _averageRating = _ratingService.averageRating(_ratingDistribution);
+    _checkWishlistStatus();
+  }
+
+  Future<void> _checkWishlistStatus() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final result = await widget.wishlistRepository.isWishlisted(
+      user.uid,
+      widget.city.name,
+      widget.city.latitude,
+      widget.city.longitude,
+    );
+    setState(() {
+      _wishlistentry = result;
+      _isLoadingWishlistStatus = false;
+    });
+  }
+
+  Future<void> _toggleWishlist() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    if (_wishlistentry != null) {
+      await widget.wishlistRepository.removeFromWishlist(_wishlistentry!.id, user.uid);
+      setState(() => _wishlistentry = null);
+    } else {
+      final entry = WishlistEntry(
+          id: WishlistEntry.UNSAVED_ID,
+          userId: user.uid,
+          cityName: widget.city.name,
+          country: widget.city.country,
+          continent: widget.city.continent,
+          latitude: widget.city.latitude,
+          longitude: widget.city.longitude,
+      );
+      final saved = await widget.wishlistRepository.addToWishlist(entry);
+      setState(() => _wishlistentry = saved);
+    }
   }
 
   @override
@@ -289,7 +337,6 @@ class _CityDetailsSheetState extends State<_CityDetailsSheet> {
             controller: scrollController,
             padding: const EdgeInsets.all(24),
             children: [
-              // Visual handle for dragging
               Center(
                 child: Container(
                   width: 40,
@@ -318,7 +365,6 @@ class _CityDetailsSheetState extends State<_CityDetailsSheet> {
               
               const SizedBox(height: 24),
               
-              // Average Rating Number
               Row(
                 children: [
                   Text(
@@ -333,7 +379,6 @@ class _CityDetailsSheetState extends State<_CityDetailsSheet> {
               
               const SizedBox(height: 24),
               
-              // Rating Chart Placeholder
               Container(
                 height: 150,
                 decoration: BoxDecoration(
@@ -343,14 +388,77 @@ class _CityDetailsSheetState extends State<_CityDetailsSheet> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 alignment: Alignment.center,
-                child: const Text('Rating chart placeholder'),
+                child: BarChart(
+                  BarChartData(
+                    alignment: BarChartAlignment.spaceAround,
+                    maxY: 40,
+                    barTouchData: BarTouchData(enabled: true),
+                    gridData: const FlGridData(show: false),
+                    borderData: FlBorderData(show: false),
+                    titlesData: FlTitlesData(
+                      leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          getTitlesWidget: (value, meta) {
+                            final index = value.toInt();
+                            if (index < 0 || index >= MockCityRatingService.ratingCategories.length) {
+                              return const SizedBox.shrink();
+                            }
+                            final rating = MockCityRatingService.ratingCategories[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Text(
+                                rating.toString(),
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    barGroups: List.generate(
+                      MockCityRatingService.ratingCategories.length,
+                      (i) {
+                        final rating = MockCityRatingService.ratingCategories[i];
+                        final percentage = _ratingDistribution[rating] ?? 0;
+                        return BarChartGroupData(
+                          x: i,
+                          barRods: [
+                            BarChartRodData(
+                              toY: percentage.toDouble(),
+                              color: AppColors.primaryOrange,
+                              width: 14,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                ),
               ),
               
               const SizedBox(height: 32),
-              
-              // TODO: Add wishlist toggle button
+
+              ElevatedButton.icon(
+                onPressed: _isLoadingWishlistStatus ? null : _toggleWishlist,
+                icon: Icon(_wishlistentry != null ? Icons.bookmark : Icons.bookmark_outline),
+                label: Text(_wishlistentry != null ? 'Wishlisted' : 'Add to Wishlist'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _wishlistentry != null
+                      ? AppColors.primaryOrange.withValues(alpha: 0.15)
+                      : AppColors.primaryOrange,
+                  foregroundColor: _wishlistentry != null ? AppColors.primaryOrange : Colors.white,
+                ),
+              ),
               // TODO: Add "Log this city" button
-              
+
               const SizedBox(height: 24),
             ],
           ),

@@ -27,10 +27,6 @@ class MockCityRatingService {
         ratingCategories[i]: rounded[i]
     };
 
-    // ignore: avoid_print
-    print('Rating Distribution: $distribution');
-    print('Average Rating: ${averageRating(distribution)}');
-
     return distribution;
   }
 
@@ -53,7 +49,6 @@ class MockCityRatingService {
       previousWeight = _nextWeight(previousWeight);
       weights[i] = previousWeight;
     }
-
     return weights;
   }
 
