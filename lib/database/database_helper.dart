@@ -15,7 +15,7 @@ class DatabaseHelper {
     final path = join(await getDatabasesPath(), 'roamly.db');
     return openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: (db, version) async {
         await db.execute('''
         CREATE TABLE city_entries(
@@ -43,7 +43,21 @@ class DatabaseHelper {
           username TEXT NOT NULL
         )
         ''');
+        
+        await db.execute('''
+        CREATE TABLE wishlist_entries(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          userId TEXT NOT NULL,
+          cityName TEXT NOT NULL,
+          country TEXT NOT NULL,
+          continent TEXT NOT NULL,
+          latitude REAL NOT NULL,
+          longitude REAL NOT NULL,
+          createdAt TEXT NOT NULL
+        )
+        ''');
       },
+
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
           await db.execute('ALTER TABLE city_entries ADD COLUMN latitude REAL');
@@ -64,6 +78,20 @@ class DatabaseHelper {
           } catch (e) {
             print("Database Upgrade: imagePath column might already exist: $e");
           }
+        }
+        if (oldVersion < 5) {
+          await db.execute('''
+          CREATE TABLE wishlist_entries(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            userId TEXT NOT NULL,
+            cityName TEXT NOT NULL,
+            country TEXT NOT NULL,
+            continent TEXT NOT NULL,
+            latitude REAL NOT NULL,
+            longitude REAL NOT NULL,
+            createdAt TEXT NOT NULL
+          )
+          ''');
         }
       },
     );
