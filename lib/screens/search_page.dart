@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../services/city_api_service.dart';
+import '../services/mock_city_rating_service.dart';
 import '../themes/colors.dart';
 
 enum SearchCategory { cities, users }
@@ -61,6 +62,15 @@ class _SearchPageState extends State<SearchPage> {
         }
       }
     });
+  }
+
+  void _showCityDetails(CitySearchResult city) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _CityDetailsSheet(city: city),
+    );
   }
 
   @override
@@ -210,13 +220,12 @@ class _SearchPageState extends State<SearchPage> {
       separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final city = _cityResults[index];
-        return Container(
-          decoration: BoxDecoration(
-            color: theme.brightness == Brightness.light
-                ? Colors.white
-                : AppColors.surfaceCardDark,
-            borderRadius: BorderRadius.circular(12),
-          ),
+        return Material(
+          color: theme.brightness == Brightness.light
+              ? Colors.white
+              : AppColors.surfaceCardDark,
+          borderRadius: BorderRadius.circular(12),
+          clipBehavior: Clip.antiAlias,
           child: ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             title: Text(
@@ -227,8 +236,123 @@ class _SearchPageState extends State<SearchPage> {
             trailing: const Icon(Icons.chevron_right, size: 20),
             onTap: () {
               FocusScope.of(context).unfocus();
-              // Placeholder for future navigation
+              _showCityDetails(city);
             },
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _CityDetailsSheet extends StatefulWidget {
+  final CitySearchResult city;
+
+  const _CityDetailsSheet({required this.city});
+
+  @override
+  State<_CityDetailsSheet> createState() => _CityDetailsSheetState();
+}
+
+class _CityDetailsSheetState extends State<_CityDetailsSheet> {
+  //deliberate trade-off: global ratings for each city do not get persisted but get generated again each time it is searched
+  //in a real App this would be saved somewhere globally for each user to be identical, here it is only a mocked function
+  late final Map<double, int> _ratingDistribution;
+  late final double _averageRating;
+  final _ratingService = MockCityRatingService();
+
+  @override
+  void initState() {
+    super.initState();
+    // Requirements: generate exactly once and store in local state for the sheet's lifetime
+    _ratingDistribution = _ratingService.generateRatingDistribution();
+    _averageRating = _ratingService.averageRating(_ratingDistribution);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return DraggableScrollableSheet(
+      initialChildSize: 0.6,
+      minChildSize: 0.4,
+      maxChildSize: 0.9,
+      expand: false,
+      builder: (context, scrollController) {
+        return Container(
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.surfaceCardDark : AppColors.surfaceLight,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: ListView(
+            controller: scrollController,
+            padding: const EdgeInsets.all(24),
+            children: [
+              // Visual handle for dragging
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 24),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              
+              Text(
+                widget.city.name,
+                style: theme.textTheme.displaySmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                ),
+              ),
+              Text(
+                widget.city.country,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                ),
+              ),
+              
+              const SizedBox(height: 24),
+              
+              // Average Rating Number
+              Row(
+                children: [
+                  Text(
+                    '${_averageRating.toStringAsFixed(1)} ★',
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      color: AppColors.primaryOrange,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              
+              const SizedBox(height: 24),
+              
+              // Rating Chart Placeholder
+              Container(
+                height: 150,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                alignment: Alignment.center,
+                child: const Text('Rating chart placeholder'),
+              ),
+              
+              const SizedBox(height: 32),
+              
+              // TODO: Add wishlist toggle button
+              // TODO: Add "Log this city" button
+              
+              const SizedBox(height: 24),
+            ],
           ),
         );
       },
