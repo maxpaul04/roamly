@@ -124,7 +124,6 @@ class _AddCityPageState extends State<AddCityPage> {
     if (user == null) return;
 
     final name = _cityNameController.text.trim();
-    final country = _countryController.text.trim();
 
     setState(() {
       nameError = null;
@@ -145,25 +144,25 @@ class _AddCityPageState extends State<AddCityPage> {
       _dateError = 'Departure date cannot be before arrival date';
       hasErrors = true;
     }
-    if (selectedResult == null && widget.editingEntry == null) {
+    if (selectedResult == null || widget.editingEntry == null) {
       nameError = 'Please select a city from the list';
       hasErrors = true;
     }
 
     if (hasErrors) return;
 
-    String? imagePath;
+    String? imagePath = widget.editingEntry?.imagePath;
     if (_pickedImage != null) {
       imagePath = await ImageStorageService().saveImage(_pickedImage!);
     }
 
     final newCity = CityEntry(
-      id: CityEntry.UNSAVED_ID,
+      id: widget.editingEntry?.id ?? CityEntry.UNSAVED_ID,
       userId: user.uid,
       userName: user.displayName ?? 'Traveler',
       name: name,
-      country: country,
-      continent: selectedResult!.continent,
+      country: widget.editingEntry?.country ?? selectedResult!.country,
+      continent: widget.editingEntry?.continent ?? selectedResult!.continent,
       arrivalDate: _arrivalDate!,
       departureDate: _departureDate!,
       rating: _selectedRating,
@@ -174,7 +173,11 @@ class _AddCityPageState extends State<AddCityPage> {
       imagePath: imagePath,
     );
 
-    await widget.repository.addEntry(newCity);
+    if (widget.editingEntry != null) {
+      await widget.repository.updateEntry(newCity);
+    } else {
+      await widget.repository.addEntry(newCity);
+    }
     widget.onSave();
 
     if (mounted && Navigator.canPop(context)) {

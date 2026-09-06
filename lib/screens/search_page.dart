@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:roamly/models/wishlist_entry_model.dart';
+import 'package:roamly/screens/profile_page.dart';
 import 'package:roamly/services/user_repository.dart';
 import '../models/friendship_model.dart';
 import '../models/user_model.dart';
@@ -127,6 +128,20 @@ class _SearchPageState extends State<SearchPage> {
       borderRadius: BorderRadius.circular(12),
       clipBehavior: Clip.antiAlias,
       child: ListTile(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ProfilePage(
+                viewedUid: result.user.uid,
+                cityRepository: widget.repository,
+                userRepository: widget.userRepository,
+                friendshipRepository: widget.friendshipRepository,
+                onNavigateToStats: () {},
+              ),
+            ),
+          );
+        },
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         title: Text(result.user.userName, style: const TextStyle(fontWeight: FontWeight.bold)),
         trailing: FriendshipActionButton(

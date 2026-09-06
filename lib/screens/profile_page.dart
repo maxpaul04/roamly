@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:roamly/screens/stats_page.dart';
 
 import 'package:roamly/services/city_repository.dart';
 import 'package:roamly/services/friendship_repository.dart';
 import 'package:roamly/services/user_repository.dart';
 import 'package:roamly/widgets/city_entry_card.dart';
+import '../main.dart';
 import '../models/city_entry_model.dart';
 import '../models/friendship_model.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
 import '../widgets/friendship_action_button.dart';
+import 'add_city_page.dart';
 import 'login_page.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -17,6 +20,7 @@ class ProfilePage extends StatefulWidget {
   final UserRepository userRepository;
   final FriendshipRepository friendshipRepository;
   final String viewedUid;
+  final VoidCallback onNavigateToStats;
 
   const ProfilePage({
     super.key,
@@ -24,6 +28,7 @@ class ProfilePage extends StatefulWidget {
     required this.userRepository,
     required this.friendshipRepository,
     required this.viewedUid,
+    required this.onNavigateToStats,
   });
 
   @override
@@ -169,10 +174,21 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
           padding: const EdgeInsets.all(16),
           children: [
             ElevatedButton.icon(
-              onPressed: () => Navigator.pushNamed(context, '/stats', arguments: widget.viewedUid),
-              icon: const Icon(Icons.bar_chart),
-              label: const Text('View Travel Stats'),
+            onPressed: () {
+              if (isOwnProfile) {
+                widget.onNavigateToStats();
+              } else {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => StatsPage(viewedUid: widget.viewedUid),
+                  ),
+                );
+              }
+            },
+            icon: const Icon(Icons.bar_chart),
+            label: const Text('View Travel Stats'),
             ),
+
             const SizedBox(height: 24),
             Text('Travel History', style: Theme.of(context).textTheme.titleLarge),
             const Divider(),
@@ -241,8 +257,70 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   }
 
   Widget _buildSettingsTab() {
-    return Scaffold(
-      //TODO
+    final currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
+
+    return FutureBuilder<List<CityEntry>>(
+      future: widget.cityRepository.getEntries(currentUid),
+      builder: (context, snapshot) {
+        final logs = snapshot.data ?? [];
+
+        return ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            Text('Appearance', style: Theme.of(context).textTheme.titleLarge),
+            ListTile(
+              title: const Text('Dark Mode'),
+              trailing: Switch(
+                value: themeNotifier.value == ThemeMode.dark,
+                onChanged: (bool value) {
+                  setState(() {
+                    themeNotifier.value = value ? ThemeMode.dark : ThemeMode.light;
+                  });
+                },
+              ),
+            ),
+            const Divider(),
+            const SizedBox(height: 16),
+
+            Text('Manage Trips', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 8),
+
+            if (logs.isEmpty)
+            const Center(child: Text('No trips to manage.'))
+            else
+              ...logs.map((log) => ListTile(
+                title: Text(log.name),
+                subtitle: Text(log.country),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit, size: 20),
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AddCityPage(
+                            onSave: () => setState(() {}),
+                            repository: widget.cityRepository,
+                            editingEntry: log, // This triggers the edit mode logic
+                          ),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete, size: 20),
+                      onPressed: () async {
+                        await widget.cityRepository.deleteEntry(log.id, currentUid);
+                        setState(() {});
+                      },
+                    ),
+                  ],
+                )
+              ),
+            )
+          ],
+        );
+      }
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:roamly/services/city_repository.dart';
 import 'package:roamly/services/friendship_repository.dart';
@@ -33,14 +34,31 @@ class _MainNavigationState extends State<MainNavigation>{
     });
   }
 
+  void _goToTab(int index) => setState(()
+    => _selectedIndex = index
+  );
+
   @override
   Widget build(BuildContext context) {
     final List<Widget> pages = [
-      FeedPage(reloadTrigger: _reloadTrigger, repository: _repository),
-      SearchPage(repository: _repository, onCityAdded: _handleCityAdded, userRepository: _userRepository, friendshipRepository: _friendshipRepository,),
-      AddCityPage(onSave: _handleCityAdded, repository: _repository),
-      const StatsPage(),
-      ProfilePage(cityRepository: _repository, userRepository: _userRepository, friendshipRepository: _friendshipRepository, viewedUid: ''),
+      FeedPage(
+          reloadTrigger: _reloadTrigger,
+          repository: _repository),
+      SearchPage(
+        repository: _repository,
+        onCityAdded: _handleCityAdded,
+        userRepository: _userRepository,
+        friendshipRepository: _friendshipRepository,),
+      AddCityPage(
+          onSave: _handleCityAdded,
+          repository: _repository),
+      StatsPage(viewedUid: FirebaseAuth.instance.currentUser?.uid ?? ''),
+      ProfilePage(
+          cityRepository: _repository,
+          userRepository: _userRepository,
+          friendshipRepository: _friendshipRepository,
+          viewedUid: FirebaseAuth.instance.currentUser?.uid ?? '',
+          onNavigateToStats: () => _goToTab(3)),
     ];
 
     return Scaffold(

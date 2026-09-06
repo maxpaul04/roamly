@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class StatsPage extends StatelessWidget {
-  const StatsPage ({super.key});
+  final String viewedUid;
+
+  const StatsPage ({super.key, required this.viewedUid});
 
   @override
   Widget build(BuildContext context) {
