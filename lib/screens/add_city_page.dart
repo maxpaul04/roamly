@@ -308,7 +308,7 @@ class _AddCityPageState extends State<AddCityPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Add a city you have visited',
+                Text('Share your Trip',
                     style: Theme.of(context).textTheme.headlineMedium),
                 const SizedBox(height: 16),
                 TextFormField(

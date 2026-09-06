@@ -9,9 +9,12 @@ import 'package:roamly/widgets/city_entry_card.dart';
 import '../main.dart';
 import '../models/city_entry_model.dart';
 import '../models/friendship_model.dart';
+import '../models/stats.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
+import '../services/stats_service.dart';
 import '../widgets/friendship_action_button.dart';
+import '../widgets/stat_chip.dart';
 import 'add_city_page.dart';
 import 'login_page.dart';
 
@@ -163,33 +166,73 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   }
 
   Widget _buildOverviewTab() {
-    return FutureBuilder<List<CityEntry>>(
-      future: widget.cityRepository.getEntries(widget.viewedUid),
+    final statsService = StatsService(cityRepository: widget.cityRepository);
+
+    return FutureBuilder<List<dynamic>>(
+      future: Future.wait([
+        widget.cityRepository.getEntries(widget.viewedUid),
+        widget.userRepository.getUser(widget.viewedUid),
+        statsService.calculateStatsFor(widget.viewedUid),
+      ]),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-        final logs = snapshot.data ?? [];
+
+        final logs = (snapshot.data?[0] as List<CityEntry>?) ?? [];
+        final userModel = snapshot.data?[1] as UserModel?;
+        final stats = snapshot.data?[2] as Stats;
+        final userName = userModel?.userName ?? 'Unknown User';
+
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            ElevatedButton.icon(
-            onPressed: () {
-              if (isOwnProfile) {
-                widget.onNavigateToStats();
-              } else {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => StatsPage(viewedUid: widget.viewedUid),
+            Center(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const CircleAvatar(
+                    radius: 48,
+                    child: Icon(Icons.person, size: 48),
                   ),
-                );
-              }
-            },
-            icon: const Icon(Icons.bar_chart),
-            label: const Text('View Travel Stats'),
+                  const SizedBox(height: 12),
+                  Text(
+                    userName,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      SizedBox(width: 80, child: StatChip(label: 'Cities', value: stats.distinctCities.toString())),
+                      SizedBox(width: 80, child: StatChip(label: 'Countries', value: stats.distinctCountries.toString())),
+                      SizedBox(width: 80, child: StatChip(label: 'Continents', value: stats.distinctContinents.toString())),
+                    ],
+                  ),
+                ],
+              ),
             ),
-
             const SizedBox(height: 24),
+
+            ElevatedButton.icon(
+              onPressed: () {
+                if (isOwnProfile) {
+                  widget.onNavigateToStats();
+                } else {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => StatsPage(viewedUid: widget.viewedUid),
+                    ),
+                  );
+                }
+              },
+              icon: const Icon(Icons.bar_chart),
+              label: const Text('View Travel Stats'),
+            ),
+            const SizedBox(height: 24),
+
             Text('Travel History', style: Theme.of(context).textTheme.titleLarge),
             const Divider(),
             if (logs.isEmpty)
