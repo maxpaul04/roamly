@@ -9,6 +9,9 @@ class SqfliteFriendshipRepository implements FriendshipRepository {
 
   @override
   Future<FriendshipModel> sendRequest(String requesterUid, String receiverUid) async {
+    final existing = await statusBetween(requesterUid, receiverUid);
+    if (existing != null) return existing;
+
     final db = await _db;
     final friendship = FriendshipModel(
       id: FriendshipModel.UNSAVED_ID,
