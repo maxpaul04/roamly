@@ -16,12 +16,14 @@ class AddCityPage extends StatefulWidget {
   final VoidCallback onSave;
   final CityRepository repository;
   final CitySearchResult? prefill;
+  final CityEntry? editingEntry;
 
   const AddCityPage({
     super.key,
     required this.onSave,
     required this.repository,
     this.prefill,
+    this.editingEntry,
   });
 
   @override
@@ -51,8 +53,18 @@ class _AddCityPageState extends State<AddCityPage> {
   @override
   void initState() {  
     super.initState();
-    final prefill = widget.prefill;
-    if (prefill != null) {
+
+    if(widget.editingEntry != null) {
+      final entry = widget.editingEntry!;
+      _cityNameController.text = entry.name;
+      _countryController.text = entry.country;
+      _arrivalDate = entry.arrivalDate;
+      _departureDate = entry.departureDate;
+      _commentController.text = entry.comment!;
+      _selectedRating = entry.rating;
+    }
+    else if (widget.prefill != null) {
+      final prefill = widget.prefill!;
       selectedResult = prefill;
       _cityNameController.text = prefill.name;
       _countryController.text = prefill.country;
@@ -133,6 +145,10 @@ class _AddCityPageState extends State<AddCityPage> {
       _dateError = 'Departure date cannot be before arrival date';
       hasErrors = true;
     }
+    if (selectedResult == null && widget.editingEntry == null) {
+      nameError = 'Please select a city from the list';
+      hasErrors = true;
+    }
 
     if (hasErrors) return;
 
@@ -166,7 +182,7 @@ class _AddCityPageState extends State<AddCityPage> {
     }
   }
 
-  //Code here generated with help from AI --> resets search on every keystroke with a small delay not to immediately search and burn API-calls
+  //Code for this method generated with help from AI --> resets search on every keystroke with a small delay not to immediately search and burn API-calls
   void _whenCitySearchChanged(String query) async {
     _debounce?.cancel();
     setState(() {
