@@ -39,7 +39,7 @@ class _MainNavigationState extends State<MainNavigation>{
       FeedPage(reloadTrigger: _reloadTrigger, repository: _repository),
       SearchPage(repository: _repository, onCityAdded: _handleCityAdded, userRepository: _userRepository, friendshipRepository: _friendshipRepository,),
       AddCityPage(onSave: _handleCityAdded, repository: _repository),
-      const NotificationsPage(),
+      const StatsPage(),
       ProfilePage(repository: _repository, reloadTrigger: _reloadTrigger),
     ];
 
