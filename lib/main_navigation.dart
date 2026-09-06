@@ -40,7 +40,7 @@ class _MainNavigationState extends State<MainNavigation>{
       SearchPage(repository: _repository, onCityAdded: _handleCityAdded, userRepository: _userRepository, friendshipRepository: _friendshipRepository,),
       AddCityPage(onSave: _handleCityAdded, repository: _repository),
       const StatsPage(),
-      ProfilePage(repository: _repository, reloadTrigger: _reloadTrigger),
+      ProfilePage(cityRepository: _repository, userRepository: _userRepository, friendshipRepository: _friendshipRepository, viewedUid: ''),
     ];
 
     return Scaffold(
