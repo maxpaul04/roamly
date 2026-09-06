@@ -14,6 +14,7 @@ import '../services/sqflite_wishlist_repository.dart';
 import '../themes/colors.dart';
 import 'package:fl_chart/fl_chart.dart';
 
+import '../widgets/friendship_action_button.dart';
 import 'add_city_page.dart';
 
 enum SearchCategory { cities, users }
@@ -119,26 +120,7 @@ class _SearchPageState extends State<SearchPage> {
 
   Widget _buildUserTile(_UserSearchResult result) {
     final theme = Theme.of(context);
-    final friendship = result.friendship;
     final currentUid = FirebaseAuth.instance.currentUser?.uid;
-
-    Widget trailing;
-    if(friendship == null) {
-      trailing = TextButton(onPressed: () => _sendRequest(result), child: const Text('Add'));
-    } else if (friendship.status == FriendshipStatus.accepted) {
-      trailing = const Text('Friends', style: TextStyle(color: AppColors.textSecondaryLight));
-    } else if (friendship.requesterUid == currentUid) {
-      trailing = const Text('Pending', style: TextStyle(color: AppColors.textSecondaryLight));
-    } else {
-      // incoming pending request (this person asked me)
-      trailing = Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(icon: const Icon(Icons.check, color: Colors.green), onPressed: () => _respondToRequest(result, accept: true)),
-          IconButton(icon: const Icon(Icons.close, color: Colors.red), onPressed: () => _respondToRequest(result, accept: false)),
-        ],
-      );
-    }
 
     return Material(
       color: theme.brightness == Brightness.light ? Colors.white : AppColors.surfaceCardDark,
@@ -147,7 +129,12 @@ class _SearchPageState extends State<SearchPage> {
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         title: Text(result.user.userName, style: const TextStyle(fontWeight: FontWeight.bold)),
-        trailing: trailing,
+        trailing: FriendshipActionButton(
+          friendship: result.friendship,
+          currentUid: currentUid,
+          onAdd: () => _sendRequest(result),
+          onRespond: (accept) => _respondToRequest(result, accept: accept),
+        )
       ),
     );
   }
