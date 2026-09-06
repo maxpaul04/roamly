@@ -31,7 +31,7 @@ class _MainNavigationState extends State<MainNavigation>{
   Widget build(BuildContext context) {
     final List<Widget> pages = [
       FeedPage(reloadTrigger: _reloadTrigger, repository: _repository),
-      const SearchPage(),
+      SearchPage(repository: _repository, onCityAdded: _handleCityAdded,),
       AddCityPage(onSave: _handleCityAdded, repository: _repository),
       const NotificationsPage(),
       ProfilePage(repository: _repository, reloadTrigger: _reloadTrigger),

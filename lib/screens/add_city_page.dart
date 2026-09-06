@@ -15,11 +15,13 @@ import 'login_page.dart';
 class AddCityPage extends StatefulWidget {
   final VoidCallback onSave;
   final CityRepository repository;
+  final CitySearchResult? prefill;
 
   const AddCityPage({
     super.key,
     required this.onSave,
-    required this.repository
+    required this.repository,
+    this.prefill,
   });
 
   @override
@@ -46,6 +48,17 @@ class _AddCityPageState extends State<AddCityPage> {
   String? nameError;
   String? countryError;
 
+  @override
+  void initState() {  
+    super.initState();
+    final prefill = widget.prefill;
+    if (prefill != null) {
+      selectedResult = prefill;
+      _cityNameController.text = prefill.name;
+      _countryController.text = prefill.country;
+    }
+  }
+  
   @override
   void dispose() {
     _cityNameController.dispose();
@@ -147,6 +160,10 @@ class _AddCityPageState extends State<AddCityPage> {
 
     await widget.repository.addEntry(newCity);
     widget.onSave();
+
+    if (mounted && Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
   }
 
   //Code here generated with help from AI --> resets search on every keystroke with a small delay not to immediately search and burn API-calls

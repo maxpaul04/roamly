@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:roamly/models/wishlist_entry_model.dart';
+import '../services/city_repository.dart';
 import '../services/wishlist_repository.dart';
 import '../services/city_api_service.dart';
 import '../services/mock_city_rating_service.dart';
@@ -9,10 +10,15 @@ import '../services/sqflite_wishlist_repository.dart';
 import '../themes/colors.dart';
 import 'package:fl_chart/fl_chart.dart';
 
+import 'add_city_page.dart';
+
 enum SearchCategory { cities, users }
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({super.key});
+  final CityRepository repository;
+  final VoidCallback onCityAdded;
+
+  const SearchPage({super.key, required this.repository, required this.onCityAdded});
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -75,7 +81,12 @@ class _SearchPageState extends State<SearchPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _CityDetailsSheet(city: city, wishlistRepository: _wishlistRepository),
+      builder: (context) => _CityDetailsSheet(
+        city: city,
+        wishlistRepository: _wishlistRepository,
+        onCityAdded: widget.onCityAdded,
+        cityRepository: widget.repository,
+      ),
     );
   }
 
@@ -254,8 +265,15 @@ class _SearchPageState extends State<SearchPage> {
 class _CityDetailsSheet extends StatefulWidget {
   final CitySearchResult city;
   final WishlistRepository wishlistRepository;
+  final CityRepository cityRepository;
+  final VoidCallback onCityAdded;
 
-  const _CityDetailsSheet({required this.city, required this.wishlistRepository});
+  const _CityDetailsSheet({
+    required this.city,
+    required this.wishlistRepository,
+    required this.cityRepository,
+    required this.onCityAdded,
+  });
 
   @override
   State<_CityDetailsSheet> createState() => _CityDetailsSheetState();
@@ -268,7 +286,7 @@ class _CityDetailsSheetState extends State<_CityDetailsSheet> {
   late final double _averageRating;
   final _ratingService = MockCityRatingService();
 
-  WishlistEntry? _wishlistentry;
+  WishlistEntry? _wishlistEntry;
   bool _isLoadingWishlistStatus = true;
 
   @override
@@ -290,18 +308,30 @@ class _CityDetailsSheetState extends State<_CityDetailsSheet> {
       widget.city.longitude,
     );
     setState(() {
-      _wishlistentry = result;
+      _wishlistEntry = result;
       _isLoadingWishlistStatus = false;
     });
+  }
+
+  void _logThisCity() {
+    final navigator = Navigator.of(context, rootNavigator: true);
+    navigator.pop();
+    navigator.push(MaterialPageRoute(
+      builder: (context) => AddCityPage(
+        onSave: widget.onCityAdded,
+        repository: widget.cityRepository,
+        prefill: widget.city,
+      ),
+    ));
   }
 
   Future<void> _toggleWishlist() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
-    if (_wishlistentry != null) {
-      await widget.wishlistRepository.removeFromWishlist(_wishlistentry!.id, user.uid);
-      setState(() => _wishlistentry = null);
+    if (_wishlistEntry != null) {
+      await widget.wishlistRepository.removeFromWishlist(_wishlistEntry!.id, user.uid);
+      setState(() => _wishlistEntry = null);
     } else {
       final entry = WishlistEntry(
           id: WishlistEntry.UNSAVED_ID,
@@ -313,7 +343,7 @@ class _CityDetailsSheetState extends State<_CityDetailsSheet> {
           longitude: widget.city.longitude,
       );
       final saved = await widget.wishlistRepository.addToWishlist(entry);
-      setState(() => _wishlistentry = saved);
+      setState(() => _wishlistEntry = saved);
     }
   }
 
@@ -392,7 +422,24 @@ class _CityDetailsSheetState extends State<_CityDetailsSheet> {
                   BarChartData(
                     alignment: BarChartAlignment.spaceAround,
                     maxY: 40,
-                    barTouchData: BarTouchData(enabled: true),
+                    //Tooltips to see the individual percentages for each rating
+                    barTouchData: BarTouchData(
+                      enabled: true,
+                      touchTooltipData: BarTouchTooltipData(
+                        getTooltipColor:(group) => isDark ? Colors.transparent : Colors.white,
+                        tooltipPadding: EdgeInsets.zero,
+                        tooltipMargin: 0,
+                        getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                          return BarTooltipItem(
+                            '${rod.toY.toInt()}%',
+                            TextStyle(
+                              color: AppColors.primaryOrange,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          );
+                        }
+                      )
+                    ),
                     gridData: const FlGridData(show: false),
                     borderData: FlBorderData(show: false),
                     titlesData: FlTitlesData(
@@ -448,17 +495,27 @@ class _CityDetailsSheetState extends State<_CityDetailsSheet> {
 
               ElevatedButton.icon(
                 onPressed: _isLoadingWishlistStatus ? null : _toggleWishlist,
-                icon: Icon(_wishlistentry != null ? Icons.bookmark : Icons.bookmark_outline),
-                label: Text(_wishlistentry != null ? 'Wishlisted' : 'Add to Wishlist'),
+                icon: Icon(_wishlistEntry != null ? Icons.bookmark : Icons.bookmark_outline),
+                label: Text(_wishlistEntry != null ? 'Wishlisted' : 'Add to Wishlist'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _wishlistentry != null
+                  backgroundColor: _wishlistEntry != null
                       ? AppColors.primaryOrange.withValues(alpha: 0.15)
                       : AppColors.primaryOrange,
-                  foregroundColor: _wishlistentry != null ? AppColors.primaryOrange : Colors.white,
+                  foregroundColor: _wishlistEntry != null ? AppColors.primaryOrange : Colors.white,
                 ),
               ),
-              // TODO: Add "Log this city" button
 
+              const SizedBox(height: 12),
+
+              ElevatedButton.icon(
+                onPressed: _logThisCity,
+                icon: const Icon(Icons.add_location_alt_outlined),
+                label: const Text('Log this city'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryOrange,
+                  foregroundColor: Colors.white,
+                ),
+              ),
               const SizedBox(height: 24),
             ],
           ),
