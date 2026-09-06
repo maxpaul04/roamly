@@ -104,7 +104,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 obscureText: true,
               ),
-              const SizedBox(height: 5),
+              const SizedBox(height: 20),
 
               if (_errorMessage != null) ...[
                 Text(
@@ -129,7 +129,6 @@ class _LoginPageState extends State<LoginPage> {
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ),
-              const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

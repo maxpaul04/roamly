@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:roamly/screens/login_page.dart';
 import '../services/auth_service.dart';
 
 class SignupPage extends StatefulWidget {
@@ -128,23 +129,38 @@ class _SignupPageState extends State<SignupPage> {
                 ),
               ],
               
-              const SizedBox(height: 32),
+              const SizedBox(height: 20),
               
               _isLoading 
                 ? const Center(child: CircularProgressIndicator()) 
                 : ElevatedButton(
-                    onPressed: _handleSignUp,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      'Create Account',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  onPressed: _handleSignUp,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
+                  child: const Text(
+                    'Create Account',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("Already have an account?"),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => const LoginPage()),
+                      );
+                    },
+                    child: const Text('Log in here'),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
