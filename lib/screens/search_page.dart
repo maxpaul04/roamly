@@ -353,7 +353,7 @@ class _CityDetailsSheetState extends State<_CityDetailsSheet> {
     final isDark = theme.brightness == Brightness.dark;
 
     return DraggableScrollableSheet(
-      initialChildSize: 0.6,
+      initialChildSize: 0.55,
       minChildSize: 0.4,
       maxChildSize: 0.9,
       expand: false,
@@ -365,13 +365,13 @@ class _CityDetailsSheetState extends State<_CityDetailsSheet> {
           ),
           child: ListView(
             controller: scrollController,
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
             children: [
               Center(
                 child: Container(
                   width: 40,
                   height: 4,
-                  margin: const EdgeInsets.only(bottom: 24),
+                  margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
                     color: Colors.grey.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(2),
@@ -379,24 +379,29 @@ class _CityDetailsSheetState extends State<_CityDetailsSheet> {
                 ),
               ),
               
-              Text(
-                widget.city.name,
-                style: theme.textTheme.displaySmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                ),
-              ),
-              Text(
-                widget.city.country,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                ),
-              ),
-              
-              const SizedBox(height: 24),
-              
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.city.name,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                          ),
+                        ),
+                        Text(
+                          widget.city.country,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   Text(
                     '${_averageRating.toStringAsFixed(1)} ★',
                     style: theme.textTheme.headlineMedium?.copyWith(
@@ -407,10 +412,10 @@ class _CityDetailsSheetState extends State<_CityDetailsSheet> {
                 ],
               ),
               
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               
               Container(
-                height: 150,
+                height: 160,
                 decoration: BoxDecoration(
                   border: Border.all(
                     color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
@@ -491,30 +496,51 @@ class _CityDetailsSheetState extends State<_CityDetailsSheet> {
                 ),
               ),
               
-              const SizedBox(height: 32),
+              const SizedBox(height: 28),
 
-              ElevatedButton.icon(
-                onPressed: _isLoadingWishlistStatus ? null : _toggleWishlist,
-                icon: Icon(_wishlistEntry != null ? Icons.bookmark : Icons.bookmark_outline),
-                label: Text(_wishlistEntry != null ? 'Wishlisted' : 'Add to Wishlist'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _wishlistEntry != null
-                      ? AppColors.primaryOrange.withValues(alpha: 0.15)
-                      : AppColors.primaryOrange,
-                  foregroundColor: _wishlistEntry != null ? AppColors.primaryOrange : Colors.white,
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              ElevatedButton.icon(
-                onPressed: _logThisCity,
-                icon: const Icon(Icons.add_location_alt_outlined),
-                label: const Text('Log this city'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryOrange,
-                  foregroundColor: Colors.white,
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _isLoadingWishlistStatus ? null : _toggleWishlist,
+                      icon: Icon(
+                        _wishlistEntry != null ? Icons.bookmark : Icons.bookmark_outline, 
+                        size: 16,
+                      ),
+                      label: Text(
+                        _wishlistEntry != null ? 'Wishlisted' : 'Wishlist',
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 0),
+                        backgroundColor: _wishlistEntry != null
+                            ? AppColors.primaryOrange.withValues(alpha: 0.15)
+                            : AppColors.primaryOrange,
+                        foregroundColor: _wishlistEntry != null 
+                            ? AppColors.primaryOrange 
+                            : Colors.white,
+                        elevation: 0,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _logThisCity,
+                      icon: const Icon(Icons.add_location_alt_outlined, size: 16),
+                      label: const Text(
+                        'Log City',
+                        style: TextStyle(fontSize: 13),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 0),
+                        backgroundColor: AppColors.primaryOrange,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 24),
             ],

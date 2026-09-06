@@ -15,7 +15,7 @@ class DatabaseHelper {
     final path = join(await getDatabasesPath(), 'roamly.db');
     return openDatabase(
       path,
-      version: 5,
+      version: 6,
       onCreate: (db, version) async {
         await db.execute('''
         CREATE TABLE city_entries(
@@ -56,6 +56,17 @@ class DatabaseHelper {
           createdAt TEXT NOT NULL
         )
         ''');
+
+        await db.execute('''
+         CREATE TABLE friendships(
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           requesterUid TEXT NOT NULL,
+           receiverUid TEXT NOT NULL,
+           status TEXT NOT NULL,
+           createdAt TEXT NOT NULL,
+           UNIQUE(requesterUid, receiverUid)
+         )
+        ''');
       },
 
       onUpgrade: (db, oldVersion, newVersion) async {
@@ -90,6 +101,18 @@ class DatabaseHelper {
             latitude REAL NOT NULL,
             longitude REAL NOT NULL,
             createdAt TEXT NOT NULL
+          )
+          ''');
+        }
+        if (oldVersion < 6) {
+          await db.execute('''
+          CREATE TABLE friendships(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            requesterUid TEXT NOT NULL,
+            receiverUid TEXT NOT NULL,
+            status TEXT NOT NULL,
+            createdAt TEXT NOT NULL,
+            UNIQUE(requesterUid, receiverUid)
           )
           ''');
         }
