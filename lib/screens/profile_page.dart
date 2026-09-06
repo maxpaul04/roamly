@@ -6,7 +6,10 @@ import 'package:roamly/services/friendship_repository.dart';
 import 'package:roamly/services/user_repository.dart';
 import 'package:roamly/widgets/city_entry_card.dart';
 import '../models/city_entry_model.dart';
+import '../models/friendship_model.dart';
+import '../models/user_model.dart';
 import '../services/auth_service.dart';
+import '../widgets/friendship_action_button.dart';
 import 'login_page.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -187,8 +190,53 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   }
 
   Widget _buildRequestsTab() {
-    return Scaffold(
-      //TODO
+    final currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
+
+    return FutureBuilder<List<FriendshipModel>>(
+      future: widget.friendshipRepository.pendingReceivedBy(currentUid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final requests = snapshot.data ?? [];
+
+        if(requests.isEmpty) {
+          return const Center(child: Text('No pending Friend Requests'));
+        }
+
+        return ListView.builder(
+          itemCount: requests.length,
+          itemBuilder: (context, index) {
+            final friendRequests = requests[index];
+
+            return FutureBuilder<UserModel?>(
+              future: widget.userRepository.getUser(friendRequests.requesterUid),
+              builder: (context, userSnapshot) {
+                final requester = userSnapshot.data?.userName ?? 'Unknown User';
+
+                return ListTile(
+                  leading: const CircleAvatar(child: Icon(Icons.person)),
+                  title: Text(requester),
+                  subtitle: const Text('Sent you a friend request'),
+                  trailing: FriendshipActionButton(
+                    friendship: friendRequests,
+                    currentUid: currentUid,
+                    onAdd: () {},
+                    onRespond: (accept) async {
+                      await widget.friendshipRepository.respondToRequest(
+                        friendRequests.id,
+                        accept: accept,
+                      );
+                      setState(() {});
+                    },
+                  ),
+                );
+              }
+            );
+          }
+        );
+      }
     );
   }
 

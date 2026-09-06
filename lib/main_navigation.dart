@@ -69,9 +69,9 @@ class _MainNavigationState extends State<MainNavigation>{
             label: 'Add City',
           ),
           NavigationDestination(
-            icon: Icon(Icons.notifications_outlined),
-            selectedIcon: Icon(Icons.notifications),
-            label: 'News',
+            icon: Icon(Icons.bar_chart_outlined),
+            selectedIcon: Icon(Icons.bar_chart_outlined),
+            label: 'Stats',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
