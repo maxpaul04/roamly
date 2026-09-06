@@ -2,7 +2,11 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:roamly/models/wishlist_entry_model.dart';
+import 'package:roamly/services/user_repository.dart';
+import '../models/friendship_model.dart';
+import '../models/user_model.dart';
 import '../services/city_repository.dart';
+import '../services/friendship_repository.dart';
 import '../services/wishlist_repository.dart';
 import '../services/city_api_service.dart';
 import '../services/mock_city_rating_service.dart';
@@ -17,8 +21,16 @@ enum SearchCategory { cities, users }
 class SearchPage extends StatefulWidget {
   final CityRepository repository;
   final VoidCallback onCityAdded;
+  final UserRepository userRepository;
+  final FriendshipRepository friendshipRepository;
 
-  const SearchPage({super.key, required this.repository, required this.onCityAdded});
+  const SearchPage({
+    super.key,
+    required this.repository,
+    required this.onCityAdded,
+    required this.userRepository,
+    required this.friendshipRepository,
+  });
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -31,6 +43,7 @@ class _SearchPageState extends State<SearchPage> {
   
   SearchCategory _selectedCategory = SearchCategory.cities;
   List<CitySearchResult> _cityResults = [];
+  List<_UserSearchResult> _userResults = [];
   bool _isSearching = false;
   Timer? _debounce;
 
@@ -47,33 +60,47 @@ class _SearchPageState extends State<SearchPage> {
     if (query.isEmpty) {
       setState(() {
         _cityResults = [];
+        _userResults = [];
         _isSearching = false;
       });
       return;
     }
 
     _debounce = Timer(const Duration(milliseconds: 500), () async {
-      if (_selectedCategory == SearchCategory.users) return;
-
-      setState(() => _isSearching = true);
-      
-      try {
-        final results = await _apiService.searchCities(query);
-        if (mounted) {
-          setState(() {
-            _cityResults = results;
-            _isSearching = false;
-          });
-        }
-      } catch (e) {
-        if (mounted) {
-          setState(() {
-            _cityResults = [];
-            _isSearching = false;
-          });
-        }
+      if (_selectedCategory == SearchCategory.users) {
+        await _searchUsers(query);
+      } else {
+        await _searchCities(query);
       }
     });
+  }
+
+  Future<void> _searchCities(String query) async {
+    setState(() => _isSearching = true);
+    try {
+      final results = await _apiService.searchCities(query);
+      if (mounted) setState(() { _cityResults = results; _isSearching = false; });
+    } catch (e) {
+      if (mounted) setState(() { _cityResults = []; _isSearching = false; });
+    }
+  }
+
+  Future<void> _searchUsers(String query) async {
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUid == null) return;
+
+    setState(() => _isSearching = true);
+    try {
+      final users = await widget.userRepository.searchUsers(query, excludeUid: currentUid);
+      final results = <_UserSearchResult>[];
+      for (final u in users) {
+        final friendship = await widget.friendshipRepository.statusBetween(currentUid, u.uid);
+        results.add(_UserSearchResult(user: u, friendship: friendship));
+      }
+      if (mounted) setState(() { _userResults = results; _isSearching = false; });
+    } catch (e) {
+      if (mounted) setState(() { _userResults = []; _isSearching = false; });
+    }
   }
 
   void _showCityDetails(CitySearchResult city) {
@@ -88,6 +115,65 @@ class _SearchPageState extends State<SearchPage> {
         cityRepository: widget.repository,
       ),
     );
+  }
+
+  Widget _buildUserTile(_UserSearchResult result) {
+    final theme = Theme.of(context);
+    final friendship = result.friendship;
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
+
+    Widget trailing;
+    if(friendship == null) {
+      trailing = TextButton(onPressed: () => _sendRequest(result), child: const Text('Add'));
+    } else if (friendship.status == FriendshipStatus.accepted) {
+      trailing = const Text('Friends', style: TextStyle(color: AppColors.textSecondaryLight));
+    } else if (friendship.requesterUid == currentUid) {
+      trailing = const Text('Pending', style: TextStyle(color: AppColors.textSecondaryLight));
+    } else {
+      // incoming pending request (this person asked me)
+      trailing = Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(icon: const Icon(Icons.check, color: Colors.green), onPressed: () => _respondToRequest(result, accept: true)),
+          IconButton(icon: const Icon(Icons.close, color: Colors.red), onPressed: () => _respondToRequest(result, accept: false)),
+        ],
+      );
+    }
+
+    return Material(
+      color: theme.brightness == Brightness.light ? Colors.white : AppColors.surfaceCardDark,
+      borderRadius: BorderRadius.circular(12),
+      clipBehavior: Clip.antiAlias,
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        title: Text(result.user.userName, style: const TextStyle(fontWeight: FontWeight.bold)),
+        trailing: trailing,
+      ),
+    );
+  }
+
+  Future<void> _sendRequest(_UserSearchResult result) async {
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUid == null) return;
+    final friendship = await widget.friendshipRepository.sendRequest(currentUid, result.user.uid);
+    setState(() {
+      final index = _userResults.indexOf(result);
+      if (index != -1) _userResults[index] = _UserSearchResult(user: result.user, friendship: friendship);
+    });
+  }
+
+  Future<void> _respondToRequest(_UserSearchResult result, {required bool accept}) async {
+    final friendship = result.friendship;
+    if (friendship == null) return;
+    await widget.friendshipRepository.respondToRequest(friendship.id, accept: accept);
+
+    final currentUid = FirebaseAuth.instance.currentUser!.uid;
+    final updated = accept ? await widget.friendshipRepository.statusBetween(currentUid, result.user.uid) : null;
+
+    setState(() {
+      final index = _userResults.indexOf(result);
+      if (index != -1) _userResults[index] = _UserSearchResult(user: result.user, friendship: updated);
+    });
   }
 
   @override
@@ -128,6 +214,7 @@ class _SearchPageState extends State<SearchPage> {
                       setState(() {
                         _selectedCategory = newSelection.first;
                         _cityResults = [];
+                        _userResults = [];
                         _isSearching = false;
                         _searchController.clear();
                       });
@@ -191,19 +278,37 @@ class _SearchPageState extends State<SearchPage> {
     final theme = Theme.of(context);
     
     if (_selectedCategory == SearchCategory.users) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(height: 16),
-            Text(
-              'TODO: User search',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: AppColors.textSecondaryLight
-              ),
-            ),
-          ],
-        ),
+      if(FirebaseAuth.instance.currentUser == null) {
+        return Center(
+          child: Text('Sign in to search for travelers',
+              style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.textSecondaryLight)),
+        );
+      }
+
+      final query = _searchController.text.trim();
+      if(query.isEmpty) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.people_alt, size: 64, color: AppColors.primaryOrange.withValues(alpha: 0.3)),
+              const SizedBox(height: 16),
+              Text('Search for a Username',
+                  style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.textSecondaryLight)),
+            ],
+          ),
+        );
+      }
+
+      if (!_isSearching && _userResults.isEmpty) {
+        return const Center(child: Text('No users found'));
+      }
+
+      return ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        itemCount: _userResults.length,
+        separatorBuilder: (context, index) => const SizedBox(height: 12),
+        itemBuilder: (context, index) => _buildUserTile(_userResults[index]),
       );
     }
 
@@ -277,6 +382,13 @@ class _CityDetailsSheet extends StatefulWidget {
 
   @override
   State<_CityDetailsSheet> createState() => _CityDetailsSheetState();
+}
+
+class _UserSearchResult {
+  final UserModel user;
+  final FriendshipModel? friendship;
+
+  const _UserSearchResult({required this.user, this.friendship});
 }
 
 class _CityDetailsSheetState extends State<_CityDetailsSheet> {

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:roamly/services/city_repository.dart';
+import 'package:roamly/services/friendship_repository.dart';
 import 'package:roamly/services/sqflite_city_repository.dart';
+import 'package:roamly/services/sqflite_friendship_repository.dart';
+import 'package:roamly/services/sqflite_user_repository.dart';
+import 'package:roamly/services/user_repository.dart';
 import 'screens/feed_page.dart';
 import 'screens/add_city_page.dart';
 import 'screens/notifications_page.dart';
@@ -19,6 +23,8 @@ class _MainNavigationState extends State<MainNavigation>{
   int _reloadTrigger = 0;
 
   final CityRepository _repository = SqfliteCityRepository();
+  final UserRepository _userRepository = SqfliteUserRepository();
+  final FriendshipRepository _friendshipRepository = SqfliteFriendshipRepository();
 
   void _handleCityAdded() {
     setState(() {
@@ -31,7 +37,7 @@ class _MainNavigationState extends State<MainNavigation>{
   Widget build(BuildContext context) {
     final List<Widget> pages = [
       FeedPage(reloadTrigger: _reloadTrigger, repository: _repository),
-      SearchPage(repository: _repository, onCityAdded: _handleCityAdded,),
+      SearchPage(repository: _repository, onCityAdded: _handleCityAdded, userRepository: _userRepository, friendshipRepository: _friendshipRepository,),
       AddCityPage(onSave: _handleCityAdded, repository: _repository),
       const NotificationsPage(),
       ProfilePage(repository: _repository, reloadTrigger: _reloadTrigger),
