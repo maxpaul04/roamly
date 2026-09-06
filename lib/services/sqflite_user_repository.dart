@@ -49,4 +49,16 @@ class SqfliteUserRepository implements UserRepository {
     );
     return maps.isNotEmpty;
   }
+
+  @override
+  Future<List<UserModel>> searchUsers(String query, {required String excludeUid}) async {
+    final db = await _dbHelper.database;
+    final maps = await db.query(
+      'users',
+      where: 'LOWER(username) LIKE ? AND uid != ?',
+      whereArgs: ['%${query.toLowerCase()}%', excludeUid],
+      limit: 10,
+    );
+    return maps.map(UserModel.fromMap).toList();
+  }
 }
