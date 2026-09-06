@@ -7,7 +7,7 @@ import 'package:roamly/services/sqflite_user_repository.dart';
 import 'package:roamly/services/user_repository.dart';
 import 'screens/feed_page.dart';
 import 'screens/add_city_page.dart';
-import 'screens/notifications_page.dart';
+import 'screens/stats_page.dart';
 import 'screens/profile_page.dart';
 import 'screens/search_page.dart';
 

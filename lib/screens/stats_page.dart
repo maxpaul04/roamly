@@ -10,7 +10,7 @@ class NotificationsPage extends StatelessWidget {
         title: const Text('Notifications'),
       ),
       body: const Center(
-        child: Text('here you will be able to see notifications like your friends` new trips'),
+        child: Text('here you will be able to see your lifetime stats and spots of the world you already visited'),
       ),
     );
   }
