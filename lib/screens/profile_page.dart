@@ -5,6 +5,7 @@ import 'package:roamly/screens/stats_page.dart';
 import 'package:roamly/services/city_repository.dart';
 import 'package:roamly/services/friendship_repository.dart';
 import 'package:roamly/services/user_repository.dart';
+import 'package:roamly/themes/colors.dart';
 import 'package:roamly/widgets/city_entry_card.dart';
 import '../main.dart';
 import '../models/city_entry_model.dart';
@@ -336,7 +337,16 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                 subtitle: Text(log.country),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    Icon(Icons.star, color: AppColors.primaryOrange, size: 20),
+                    const SizedBox(width: 4),
+                    Text(log.rating.toString(), style: const TextStyle(
+                      fontSize: 16,
+                      color: AppColors.primaryOrange),
+                    ),
+                    const SizedBox(width: 8),
+
                     IconButton(
                       icon: const Icon(Icons.edit, size: 20),
                       onPressed: () => Navigator.push(
