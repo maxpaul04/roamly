@@ -40,64 +40,71 @@ class _MainNavigationState extends State<MainNavigation>{
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> pages = [
-      FeedPage(
-          reloadTrigger: _reloadTrigger,
-          repository: _repository),
-      SearchPage(
-        repository: _repository,
-        onCityAdded: _handleCityAdded,
-        userRepository: _userRepository,
-        friendshipRepository: _friendshipRepository,),
-      AddCityPage(
-          onSave: _handleCityAdded,
-          repository: _repository),
-      StatsPage(viewedUid: FirebaseAuth.instance.currentUser?.uid ?? ''),
-      ProfilePage(
-          cityRepository: _repository,
-          userRepository: _userRepository,
-          friendshipRepository: _friendshipRepository,
-          viewedUid: FirebaseAuth.instance.currentUser?.uid ?? '',
-          onNavigateToStats: () => _goToTab(3)),
-    ];
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        final currentUid = snapshot.data?.uid ?? '';
 
-    return Scaffold(
-      body: pages[_selectedIndex],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Feed',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.search_outlined),
-            selectedIcon: Icon(Icons.search),
-            label: 'Search',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.add_circle_outline),
-            selectedIcon: Icon(Icons.add_circle),
-            label: 'Add City',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(Icons.bar_chart_outlined),
-            label: 'Stats',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-      ),
+        final List<Widget> pages = [
+          FeedPage(
+              reloadTrigger: _reloadTrigger,
+              repository: _repository),
+          SearchPage(
+            repository: _repository,
+            onCityAdded: _handleCityAdded,
+            userRepository: _userRepository,
+            friendshipRepository: _friendshipRepository,),
+          AddCityPage(
+              onSave: _handleCityAdded,
+              repository: _repository),
+          StatsPage(viewedUid: currentUid,),
+          ProfilePage(
+              cityRepository: _repository,
+              userRepository: _userRepository,
+              friendshipRepository: _friendshipRepository,
+              viewedUid: currentUid,
+              onNavigateToStats: () => _goToTab(3)),
+        ];
+
+        return Scaffold(
+            body: pages[_selectedIndex],
+            bottomNavigationBar: NavigationBar(
+              selectedIndex: _selectedIndex,
+              onDestinationSelected: (index) {
+                setState(() {
+                  _selectedIndex = index;
+                });
+              },
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.home_outlined),
+                  selectedIcon: Icon(Icons.home),
+                  label: 'Feed',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.search_outlined),
+                  selectedIcon: Icon(Icons.search),
+                  label: 'Search',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.add_circle_outline),
+                  selectedIcon: Icon(Icons.add_circle),
+                  label: 'Add City',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.bar_chart_outlined),
+                  selectedIcon: Icon(Icons.bar_chart_outlined),
+                  label: 'Stats',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.person_outline),
+                  selectedIcon: Icon(Icons.person),
+                  label: 'Profile',
+                ),
+              ],
+            )
+        );
+      },
     );
   }
 }
