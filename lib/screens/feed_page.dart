@@ -50,6 +50,7 @@ class _FeedPageState extends State<FeedPage> {
       body: _logs.isEmpty 
         ? const Center(child: Text('No journeys logged yet.'))
         : ListView(
+        padding: const EdgeInsets.all(8),
             children: [
               for (final log in _logs)
                 CityEntryCard(log: log),

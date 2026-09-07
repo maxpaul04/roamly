@@ -185,7 +185,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
         final userName = userModel?.userName ?? 'Unknown User';
 
         return ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(8),
           children: [
             Center(
               child: Column(
