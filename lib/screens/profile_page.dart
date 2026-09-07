@@ -39,24 +39,11 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStateMixin {
+class _ProfilePageState extends State<ProfilePage> {
   final _authService = AuthService();
-  late TabController _tabController;
 
   //check if the viewed user is the current user for conditional rendering
   bool get isOwnProfile => FirebaseAuth.instance.currentUser?.uid == widget.viewedUid;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: isOwnProfile ? 3 : 1, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
 
   void _showLogoutConfirmation() {
     showDialog(
@@ -81,6 +68,30 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     );
   }
 
+  void _showUnfriendConfirmation(int friendUid, String friendName) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Remove Friend'),
+        content: Text('Are you sure you want to unfriend $friendName?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await widget.friendshipRepository.removeFriend(friendUid);
+              setState(() {});
+            },
+            child: const Text('Unfriend', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -97,32 +108,33 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
         if (user == null) return _buildLoggedOutProfile(theme);
 
         //conditional rendering depending if own profile or not
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(isOwnProfile ? 'My Profile' : 'Profile'),
-            actions: [
-              if (isOwnProfile)
-                IconButton(icon: const Icon(Icons.logout),
-                    onPressed: _showLogoutConfirmation),
-            ],
-            bottom: isOwnProfile
-                ? TabBar(
-              controller: _tabController,
-              tabs: const [
-                Tab(text: 'Overview'),
-                Tab(text: 'Friend Requests'),
-                Tab(text: 'Settings')
+        return DefaultTabController(
+          length: isOwnProfile ? 3 : 1,
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text(isOwnProfile ? 'My Profile' : 'Profile'),
+              actions: [
+                if (isOwnProfile)
+                  IconButton(icon: const Icon(Icons.logout),
+                      onPressed: _showLogoutConfirmation),
               ],
-            )
-                : null,
-          ),
-          body: TabBarView(
-            controller: _tabController,
-            children: [
-              _buildOverviewTab(),
-              if (isOwnProfile) _buildRequestsTab(),
-              if (isOwnProfile) _buildSettingsTab(),
-            ],
+              bottom: isOwnProfile
+                  ? TabBar(
+                tabs: const [
+                  Tab(text: 'Overview'),
+                  Tab(text: 'Friends'),
+                  Tab(text: 'Settings')
+                ],
+              )
+                  : null,
+            ),
+            body: TabBarView(
+              children: [
+                _buildOverviewTab(),
+                if (isOwnProfile) _buildFriendsTab(),
+                if (isOwnProfile) _buildSettingsTab(),
+              ],
+            ),
           ),
         );
       },
@@ -187,7 +199,10 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
         final logs = (snapshot.data?[0] as List<CityEntry>?) ?? [];
         final userModel = snapshot.data?[1] as UserModel?;
         final stats = snapshot.data?[2] as Stats;
-        final userName = userModel?.userName ?? 'Unknown User';
+
+        final userName = userModel?.userName
+          ?? FirebaseAuth.instance.currentUser?.displayName
+          ?? 'Unknown User';
 
         return ListView(
           padding: const EdgeInsets.all(8),
@@ -221,21 +236,26 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
             ),
             const SizedBox(height: 24),
 
-            ElevatedButton.icon(
-              onPressed: () {
-                if (isOwnProfile) {
-                  widget.onNavigateToStats();
-                } else {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => StatsPage(viewedUid: widget.viewedUid),
-                    ),
-                  );
-                }
-              },
-              icon: const Icon(Icons.bar_chart),
-              label: const Text('View Travel Stats'),
+            Center(child: SizedBox(
+                width: 300,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    if (isOwnProfile) {
+                      widget.onNavigateToStats();
+                    } else {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => StatsPage(viewedUid: widget.viewedUid),
+                        ),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.bar_chart),
+                  label: const Text('View Travel Stats'),
+                ),
+              ),
             ),
+
             const SizedBox(height: 24),
 
             Text('Travel History', style: Theme.of(context).textTheme.titleLarge),
@@ -254,54 +274,102 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   }
 
   //Friends Tab
-  Widget _buildRequestsTab() {
+  Widget _buildFriendsTab() {
     final currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
 
-    return FutureBuilder<List<FriendshipModel>>(
-      future: widget.friendshipRepository.pendingReceivedBy(currentUid),
+    return FutureBuilder<List<dynamic>>(
+      future: Future.wait([
+        widget.friendshipRepository.pendingReceivedBy(currentUid),
+        widget.friendshipRepository.friendsOf(currentUid),
+      ]),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final requests = snapshot.data ?? [];
+        final requests = (snapshot.data?[0] as List<FriendshipModel>?) ?? [];
+        final friends = (snapshot.data?[1] as List<FriendshipModel>?) ?? [];
 
-        if(requests.isEmpty) {
-          return const Center(child: Text('No pending Friend Requests'));
+        if (requests.isEmpty && friends.isEmpty) {
+          return const Center(child: Text('No friends yet'));
         }
 
-        return ListView.builder(
-          itemCount: requests.length,
-          itemBuilder: (context, index) {
-            final friendRequests = requests[index];
+        return ListView(
+          children: [
+            if (requests.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Text('Requests', style: Theme.of(context).textTheme.titleMedium),
+              ),
+              ...requests.map((friendRequest) {
+                return FutureBuilder<UserModel?>(
+                  future: widget.userRepository.getUser(friendRequest.requesterUid),
+                  builder: (context, userSnapshot) {
+                    final requester = userSnapshot.data?.userName ?? 'Unknown User';
 
-            return FutureBuilder<UserModel?>(
-              future: widget.userRepository.getUser(friendRequests.requesterUid),
-              builder: (context, userSnapshot) {
-                final requester = userSnapshot.data?.userName ?? 'Unknown User';
-
-                return ListTile(
-                  leading: const CircleAvatar(child: Icon(Icons.person)),
-                  title: Text(requester),
-                  subtitle: const Text('Sent you a friend request'),
-                  trailing: FriendshipActionButton(
-                    friendship: friendRequests,
-                    currentUid: currentUid,
-                    onAdd: () {},
-                    onRespond: (accept) async {
-                      await widget.friendshipRepository.respondToRequest(
-                        friendRequests.id,
-                        accept: accept,
-                      );
-                      setState(() {});
-                    },
-                  ),
+                    return ListTile(
+                      leading: const CircleAvatar(child: Icon(Icons.person)),
+                      title: Text(requester),
+                      subtitle: const Text('Sent you a friend request'),
+                      trailing: FriendshipActionButton(
+                        friendship: friendRequest,
+                        currentUid: currentUid,
+                        onAdd: () {},
+                        onRespond: (accept) async {
+                          await widget.friendshipRepository.respondToRequest(
+                            friendRequest.id,
+                            accept: accept,
+                          );
+                          setState(() {});
+                        },
+                      ),
+                    );
+                  },
                 );
-              }
-            );
-          }
+              }),
+            ],
+            if (friends.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Text('Friends', style: Theme.of(context).textTheme.titleMedium),
+              ),
+              ...friends.map((friendship) {
+                final otherUid = friendship.requesterUid == currentUid
+                    ? friendship.receiverUid
+                    : friendship.requesterUid;
+
+                return FutureBuilder<UserModel?>(
+                  future: widget.userRepository.getUser(otherUid),
+                  builder: (context, userSnapshot) {
+                    final friendName = userSnapshot.data?.userName ?? 'Unknown User';
+
+                    return ListTile(
+                      leading: const CircleAvatar(child: Icon(Icons.person)),
+                      title: Text(friendName),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProfilePage(
+                            cityRepository: widget.cityRepository,
+                            userRepository: widget.userRepository,
+                            friendshipRepository: widget.friendshipRepository,
+                            viewedUid: otherUid,
+                            onNavigateToStats: () {  },
+                          ),
+                        ),
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.person_remove_outlined),
+                        onPressed: () => _showUnfriendConfirmation(friendship.id, friendName),
+                      ),
+                    );
+                  },
+                );
+              }),
+            ],
+          ],
         );
-      }
+      },
     );
   }
 
