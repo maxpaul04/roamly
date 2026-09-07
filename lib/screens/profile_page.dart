@@ -43,6 +43,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   final _authService = AuthService();
   late TabController _tabController;
 
+  //check if the viewed user is the current user for conditional rendering
   bool get isOwnProfile => FirebaseAuth.instance.currentUser?.uid == widget.viewedUid;
 
   @override
@@ -95,6 +96,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
         final user = snapshot.data;
         if (user == null) return _buildLoggedOutProfile(theme);
 
+        //conditional rendering depending if own profile or not
         return Scaffold(
           appBar: AppBar(
             title: Text(isOwnProfile ? 'My Profile' : 'Profile'),
@@ -127,6 +129,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     );
   }
 
+  //Profile page in logged out state
   Widget _buildLoggedOutProfile(ThemeData theme) {
     return Scaffold(
       body: Center(
@@ -166,6 +169,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     );
   }
 
+  //Overview Tab
   Widget _buildOverviewTab() {
     final statsService = StatsService(cityRepository: widget.cityRepository);
 
@@ -249,6 +253,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     );
   }
 
+  //Friends Tab
   Widget _buildRequestsTab() {
     final currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
 
@@ -300,6 +305,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     );
   }
 
+  //Settings Tab
   Widget _buildSettingsTab() {
     final currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
 
