@@ -30,6 +30,17 @@ class StatsService {
 
     final averageTripDuration = totalDaysTravelled / totalTrips;
 
+    final citiesThisYear = entries.where((e) => e.arrivalDate.year == DateTime.now().year).length;
+
+    final countryCount = <String, int>{};
+    for (final e in entries) {
+      countryCount[e.country] = (countryCount[e.country] ?? 0) + 1;
+    }
+    final topCountry = countryCount.entries.
+      reduce((a, b) => a.value > b.value ? a : b)
+      .key;
+
+
     return Stats(
       totalTrips: totalTrips,
       distinctCities: distinctCities,
@@ -37,7 +48,9 @@ class StatsService {
       distinctContinents: distinctContinents,
       averageRating: averageRating,
       averageTripDuration: averageTripDuration,
-      totalDaysTravelled: totalDaysTravelled
+      totalDaysTravelled: totalDaysTravelled,
+      citiesThisYear: citiesThisYear,
+      topCountry: topCountry,
     );
   }
 }

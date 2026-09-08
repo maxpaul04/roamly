@@ -6,6 +6,8 @@ class Stats {
   final double averageRating;
   final double averageTripDuration;
   final int totalDaysTravelled;
+  final int citiesThisYear;
+  final String topCountry;
 
   const Stats({
     required this.totalTrips,
@@ -15,6 +17,8 @@ class Stats {
     required this.averageRating,
     required this.averageTripDuration,
     required this.totalDaysTravelled,
+    required this.citiesThisYear,
+    required this.topCountry,
   });
 
   static const emptyStats = Stats(
@@ -25,5 +29,7 @@ class Stats {
     averageRating: 0.0,
     averageTripDuration: 0.0,
     totalDaysTravelled: 0,
+    citiesThisYear: 0,
+    topCountry: '-',
   );
 }
