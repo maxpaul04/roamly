@@ -144,7 +144,7 @@ class _AddCityPageState extends State<AddCityPage> {
       _dateError = 'Departure date cannot be before arrival date';
       hasErrors = true;
     }
-    if (selectedResult == null || widget.editingEntry == null) {
+    if (selectedResult == null && widget.editingEntry == null) {
       nameError = 'Please select a city from the list';
       hasErrors = true;
     }
