@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:roamly/main_navigation.dart';
 import 'package:roamly/screens/login_page.dart';
 import '../services/auth_service.dart';
 
@@ -39,7 +40,10 @@ class _SignupPageState extends State<SignupPage> {
         _usernameController.text.trim(),
       );
       if (mounted) {
-        Navigator.pop(context); 
+        Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => MainNavigation()),
+            (route) => false,
+        );
       }
     } catch (e) {
       if (mounted) {

@@ -45,6 +45,15 @@ class _ProfilePageState extends State<ProfilePage> {
   //check if the viewed user is the current user for conditional rendering
   bool get isOwnProfile => FirebaseAuth.instance.currentUser?.uid == widget.viewedUid;
 
+  @override
+  void initState() {
+    super.initState();
+    // Triggers a rebuild if the Firebase user's metadata (like displayName) updates
+    FirebaseAuth.instance.userChanges().listen((user) {
+      if (mounted) setState(() {});
+    });
+  }
+
   void _showLogoutConfirmation() {
     showDialog(
       context: context,
@@ -200,8 +209,11 @@ class _ProfilePageState extends State<ProfilePage> {
         final userModel = snapshot.data?[1] as UserModel?;
         final stats = snapshot.data?[2] as Stats;
 
+        final currentFirebaseUser = FirebaseAuth.instance.currentUser;
         final userName = userModel?.userName
-          ?? FirebaseAuth.instance.currentUser?.displayName
+          ?? currentFirebaseUser?.displayName
+          //fallback logic if no username can be rendered, then email will be used
+          ?? currentFirebaseUser?.email
           ?? 'Unknown User';
 
         return ListView(
