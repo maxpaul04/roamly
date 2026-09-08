@@ -54,6 +54,7 @@ class _AddCityPageState extends State<AddCityPage> {
   void initState() {  
     super.initState();
 
+    //prefill selection for existing entries when coming from editing mode
     if(widget.editingEntry != null) {
       final entry = widget.editingEntry!;
       _cityNameController.text = entry.name;
@@ -144,6 +145,7 @@ class _AddCityPageState extends State<AddCityPage> {
       _dateError = 'Departure date cannot be before arrival date';
       hasErrors = true;
     }
+    //only requires a city selection when creating a new entry, not editing
     if (selectedResult == null && widget.editingEntry == null) {
       nameError = 'Please select a city from the list';
       hasErrors = true;
