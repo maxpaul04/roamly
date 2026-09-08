@@ -104,6 +104,7 @@ class AppTheme {
         titleMedium: TextStyle(color: AppColors.textPrimaryLight, fontWeight: FontWeight.bold),
         bodyLarge: TextStyle(color: AppColors.textPrimaryLight),
         bodyMedium: TextStyle(color: AppColors.textSecondaryLight),
+        bodySmall: TextStyle(color: AppColors.textSecondaryLight),
       ),
     );
   }

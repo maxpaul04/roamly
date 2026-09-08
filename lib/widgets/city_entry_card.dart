@@ -25,7 +25,9 @@ class CityEntryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: const Color(0xFF242438), // Roamly card surface
+      color: Theme.of(context).brightness == Brightness.dark
+        ? AppColors.surfaceCardDark
+        : AppColors.surfaceCardLight,
       margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

@@ -7,6 +7,7 @@ class AppColors {
   // Light Mode Palette
   static const Color backgroundLight = Color(0xFFF5F0EB); // Warm Off-white
   static const Color surfaceLight = Color(0xFFFFFFFF);    // White
+  static const Color surfaceCardLight = Color(0xFFFFFFFF); //Pure white for cards
   static const Color textPrimaryLight = Color(0xFF1A1A2E); // Deep Navy
   static const Color textSecondaryLight = Color(0xFF7A6F65); // Muted Warm Grey
 
