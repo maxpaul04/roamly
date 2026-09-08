@@ -14,9 +14,9 @@ class CityEntryCard extends StatelessWidget {
     final DateFormat monthOnly = DateFormat('MMM');
 
     if (start.year != end.year) {
-      return '${monthYear.format(start)} — ${monthYear.format(end)}';
+      return '${monthYear.format(start)} - ${monthYear.format(end)}';
     } else if (start.month != end.month) {
-      return '${monthOnly.format(start)} — ${monthYear.format(end)}';
+      return '${monthOnly.format(start)} - ${monthYear.format(end)}';
     } else {
       return monthYear.format(start);
     }
