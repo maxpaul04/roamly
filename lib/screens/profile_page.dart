@@ -39,21 +39,47 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStateMixin{
   final _authService = AuthService();
 
   //check if the viewed user is the current user for conditional rendering
   bool get isOwnProfile => FirebaseAuth.instance.currentUser?.uid == widget.viewedUid;
 
+   TabController? _tabController;
+
+
   @override
   void initState() {
     super.initState();
+
+    _initTabController();
     // Triggers a rebuild if the Firebase user's metadata (like displayName) updates
     FirebaseAuth.instance.userChanges().listen((user) {
-      if (mounted) setState(() {});
+      if (mounted) {
+        _initTabController();
+        setState(() {});
+      }
     });
   }
 
+  @override
+  void dispose() {
+    _tabController?.dispose();
+    super.dispose();
+  }
+
+  void _initTabController() {
+    final newLength = isOwnProfile ? 3 : 1;
+
+    //only recreate the controllor if not created yet or length changed
+    if (_tabController == null || _tabController!.length != newLength) {
+      _tabController?.dispose();
+      _tabController = TabController(length: newLength, vsync: this);
+    }
+  }
+
+
+  //Confirmation Dialogue for logging out
   void _showLogoutConfirmation() {
     showDialog(
       context: context,
@@ -76,7 +102,7 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
-
+  //Confirmation Dialogue for unfriending someone
   void _showUnfriendConfirmation(int friendUid, String friendName) {
     showDialog(
       context: context,
@@ -101,6 +127,31 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  //Confirmation Dialogue for Deleting a past trip
+  void _showDeleteCityEntryDialogue(int entryId, String currentUid) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Trip'),
+        content: Text('Are you sure you want to delete your trip?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await widget.cityRepository.deleteEntry(entryId, currentUid);
+              setState(() {});
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -117,33 +168,32 @@ class _ProfilePageState extends State<ProfilePage> {
         if (user == null) return _buildLoggedOutProfile(theme);
 
         //conditional rendering depending if own profile or not
-        return DefaultTabController(
-          length: isOwnProfile ? 3 : 1,
-          child: Scaffold(
-            appBar: AppBar(
-              title: Text(isOwnProfile ? 'My Profile' : 'Profile'),
-              actions: [
-                if (isOwnProfile)
-                  IconButton(icon: const Icon(Icons.logout),
-                      onPressed: _showLogoutConfirmation),
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(isOwnProfile ? 'My Profile' : 'Profile'),
+            actions: [
+              if (isOwnProfile)
+                IconButton(icon: const Icon(Icons.logout),
+                    onPressed: _showLogoutConfirmation),
+            ],
+            bottom: isOwnProfile
+                ? TabBar(
+              controller: _tabController,
+              tabs: const [
+                Tab(text: 'Overview'),
+                Tab(text: 'Friends'),
+                Tab(text: 'Settings')
               ],
-              bottom: isOwnProfile
-                  ? TabBar(
-                tabs: const [
-                  Tab(text: 'Overview'),
-                  Tab(text: 'Friends'),
-                  Tab(text: 'Settings')
-                ],
-              )
-                  : null,
-            ),
-            body: TabBarView(
-              children: [
-                _buildOverviewTab(),
-                if (isOwnProfile) _buildFriendsTab(),
-                if (isOwnProfile) _buildSettingsTab(),
-              ],
-            ),
+            )
+                : null,
+          ),
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildOverviewTab(),
+              if (isOwnProfile) _buildFriendsTab(),
+              if (isOwnProfile) _buildSettingsTab(),
+            ],
           ),
         );
       },
@@ -449,7 +499,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     IconButton(
                       icon: const Icon(Icons.delete, size: 20),
                       onPressed: () async {
-                        await widget.cityRepository.deleteEntry(log.id, currentUid);
+                        _showDeleteCityEntryDialogue(log.id, currentUid);
                         setState(() {});
                       },
                     ),
