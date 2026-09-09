@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:roamly/models/wishlist_entry_model.dart';
 import 'package:roamly/services/sqflite_city_repository.dart';
 import 'package:roamly/themes/colors.dart';
+import '../models/city_entry_model.dart';
 import '../models/stats.dart';
 import '../services/stats_service.dart';
 
@@ -15,6 +19,10 @@ class StatsPage extends StatefulWidget {
 
 class _StatsPageState extends State<StatsPage> {
   Stats? _stats;
+  List<CityEntry> _entries = [];
+  CityEntry? _selectedEntry;
+  List<WishlistEntry> _wishlistEntries = [];
+  bool _showWishlist = false;
 
   @override
   void initState() {
@@ -24,8 +32,13 @@ class _StatsPageState extends State<StatsPage> {
 
   Future<void> _load() async {
     final cityRepo = SqfliteCityRepository();
+    final entries = await cityRepo.getEntries(widget.viewedUid);
     final stats = await StatsService(cityRepository: cityRepo).calculateStatsFor(widget.viewedUid);
-    setState(() => _stats = stats);
+
+    setState(() {
+      _entries = entries;
+      _stats = stats;
+    });
   }
 
   @override
@@ -48,16 +61,9 @@ class _StatsPageState extends State<StatsPage> {
             _buildHeroStats(_stats!),
             const SizedBox(height: 32),
 
-            // Map Placeholder
-            SizedBox(
-              height: 220,
-              width: double.infinity,
-
-              child: const Center(
-                child: Icon(Icons.map_outlined, size: 48, color: Colors.grey),
-              ),
-            ),
-            const SizedBox(height: 32),
+            // Map
+            _buildMap(),
+            const SizedBox(height: 10),
 
             // Detailed Stats Grid (Bottom)
             const SizedBox(height: 16),
@@ -81,6 +87,57 @@ class _StatsPageState extends State<StatsPage> {
           child: _HeroStat(label: 'Continents', value: stats.distinctContinents.toString()),
         ),
       ],
+    );
+  }
+
+  Widget _buildMap() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: SizedBox(
+        height: 260,
+        child: FlutterMap(
+          options: const MapOptions(
+            initialCenter: LatLng(51, 10),
+            initialZoom: 1.5,
+            interactionOptions: InteractionOptions(
+              flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag | InteractiveFlag.doubleTapZoom
+            )
+          ),
+          children: [
+            TileLayer(
+              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              userAgentPackageName: 'com.roamly.app',
+            ),
+            MarkerLayer(
+              markers: _entries.map((entry) => Marker(
+                point: LatLng(entry.latitude, entry.longitude),
+                width: 30,
+                height: 30,
+                child: GestureDetector(
+                  onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('${entry.name} - ${entry.rating.toStringAsFixed(1)} ★'),
+                      duration: const Duration(seconds: 2),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    )
+                  ),
+                  child: const Icon(
+                    Icons.location_on,
+                    color: AppColors.primaryOrange,
+                    size: 30,
+                    ),
+                  ),
+                )
+              ).toList(),
+            ),
+          ],
+          
+
+        )
+      )
     );
   }
 
