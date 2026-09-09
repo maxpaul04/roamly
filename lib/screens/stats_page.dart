@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -6,6 +7,7 @@ import 'package:roamly/services/sqflite_city_repository.dart';
 import 'package:roamly/themes/colors.dart';
 import '../models/city_entry_model.dart';
 import '../models/stats.dart';
+import '../services/sqflite_wishlist_repository.dart';
 import '../services/stats_service.dart';
 
 class StatsPage extends StatefulWidget {
@@ -20,13 +22,20 @@ class StatsPage extends StatefulWidget {
 class _StatsPageState extends State<StatsPage> {
   Stats? _stats;
   List<CityEntry> _entries = [];
-  CityEntry? _selectedEntry;
+
   List<WishlistEntry> _wishlistEntries = [];
   bool _showWishlist = false;
+
+  List<CityEntry?> _myEntries = [];
+  bool _showMyEntries = false;
+  String? _currentUid;
+  bool get _isOwnProfile => _currentUid == null || _currentUid == widget.viewedUid;
+
 
   @override
   void initState() {
     super.initState();
+    _currentUid = FirebaseAuth.instance.currentUser?.uid;
     _load();
   }
 
@@ -35,9 +44,18 @@ class _StatsPageState extends State<StatsPage> {
     final entries = await cityRepo.getEntries(widget.viewedUid);
     final stats = await StatsService(cityRepository: cityRepo).calculateStatsFor(widget.viewedUid);
 
+    final wishlistRepo = SqfliteWishlistRepository();
+    final wishlistEntries = await wishlistRepo.getWishlist(widget.viewedUid);
+
+    final myEntries = (!_isOwnProfile && _currentUid != null)
+      ? await cityRepo.getEntries(_currentUid!)
+      : <CityEntry>[];
+
     setState(() {
       _entries = entries;
       _stats = stats;
+      _wishlistEntries = wishlistEntries;
+      _myEntries = myEntries;
     });
   }
 
@@ -49,7 +67,30 @@ class _StatsPageState extends State<StatsPage> {
         title: const Text('Travel Stats'),
         centerTitle: true,
         elevation: 0,
+        actions:
+            //if on your own profile, gives the choice to overlay your wishlisted cities
+          _isOwnProfile
+            ? [IconButton(
+            icon: Icon(
+              _showWishlist ? Icons.layers : Icons.layers_outlined,
+              color: _showWishlist ? Colors.blue : null,
+            ),
+            tooltip: 'Overlay my Wishlist',
+            onPressed: () => setState(() => _showWishlist = !_showWishlist),
+          )]
+            //if on another users stat-page, gives the choice to overlay your own trips
+            : [
+              IconButton(
+                icon: Icon(
+                  _showMyEntries ? Icons.layers : Icons.layers_outlined,
+                  color: _showMyEntries ? Colors.green : null,
+                ),
+                tooltip: 'Overlay my Pins',
+                onPressed: () => setState(() => _showMyEntries = !_showMyEntries),
+              ),
+            ],
       ),
+
       body: _stats == null
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -64,6 +105,49 @@ class _StatsPageState extends State<StatsPage> {
             // Map
             _buildMap(),
             const SizedBox(height: 10),
+            Row(
+              children: [
+                if (!_isOwnProfile && _showMyEntries) ...[
+                  const SizedBox(width: 8),
+                  _LegendDot(color: AppColors.primaryOrange, label: 'Them'),
+                ],
+                if (!_isOwnProfile && _showMyEntries) ...[
+                  const SizedBox(width: 12),
+                  _LegendDot(color: Colors.green, label: 'Me'),
+                ],
+                const SizedBox(width: 16),
+                //Filter to show also wishlisted cities
+                if (_isOwnProfile)
+                  FilterChip(
+                    label: const Text('Wishlist'),
+                    selected: _showWishlist,
+                    onSelected: (v) => setState(() => _showWishlist = v),
+                    avatar: Icon(
+                      Icons.bookmark_outline,
+                      size: 16,
+                      color: _showWishlist ? Colors.white : Colors.blue,
+                    ),
+                    selectedColor: Colors.blue,
+                    labelStyle: TextStyle(
+                        color: _showWishlist ? Colors.white : null),
+                  ),
+
+                //Filter to overlay your trips on another persons map
+                if(!_isOwnProfile)
+                FilterChip(
+                  label: const Text('Your Trips'),
+                  selected: _showMyEntries,
+                  onSelected: (v) => setState(() => _showMyEntries = v),
+                  avatar: Icon(
+                    Icons.location_pin,
+                    size: 16,
+                    color: _showMyEntries ? Colors.white : Colors.blue,
+                  ),
+                  selectedColor: Colors.blue,
+                  labelStyle: TextStyle(color: _showMyEntries ? AppColors.textPrimaryDark : null),
+                ),
+              ],
+            ),
 
             // Detailed Stats Grid (Bottom)
             const SizedBox(height: 16),
@@ -133,13 +217,53 @@ class _StatsPageState extends State<StatsPage> {
                 )
               ).toList(),
             ),
+          if (!_isOwnProfile && _showMyEntries)
+          MarkerLayer(
+            markers: _myEntries.map((entry) => Marker(
+              point: LatLng(entry!.latitude, entry.longitude),
+              width: 30,
+              height: 30,
+              child: GestureDetector(
+                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('${entry.name} - ${entry.rating.toStringAsFixed(1)} ★'),
+                    duration: const Duration(seconds: 2),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)
+                    ),
+                  ),
+                ),
+                child: const Icon(Icons.location_pin, color: Colors.green),
+              ),
+            )).toList(),
+            ),
+          //condition rendering for pins of wishlisted cities
+          if (_showWishlist)
+            MarkerLayer(
+              markers: _wishlistEntries.map((w) => Marker(
+                point: LatLng(w.latitude, w.longitude),
+                width: 30,
+                height: 30,
+                child: GestureDetector(
+                  onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('${w.cityName}  •  Wishlist'),
+                      duration: const Duration(seconds: 2),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  ),
+                  child: const Icon(Icons.bookmark, color: Colors.blue, size: 30),
+                ),
+              )).toList(),
+            ),
           ],
-          
-
-        )
+        ),
       )
     );
   }
+
+
 
   Widget _buildStatsGrid(Stats stats) {
     final secondaryStats = [
@@ -235,6 +359,28 @@ class _StatTile extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _LegendDot extends StatelessWidget {
+  final Color color;
+  final String label;
+  const _LegendDot({required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 4),
+        Text(label, style: const TextStyle(fontSize: 12)),
+      ],
     );
   }
 }
