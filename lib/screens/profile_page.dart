@@ -71,7 +71,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   void _initTabController() {
     final newLength = isOwnProfile ? 3 : 1;
 
-    //only recreate the controllor if not created yet or length changed
+    //only recreate the controller if not created yet or length changed
     if (_tabController == null || _tabController!.length != newLength) {
       _tabController?.dispose();
       _tabController = TabController(length: newLength, vsync: this);
@@ -102,6 +102,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
       ),
     );
   }
+
   //Confirmation Dialogue for unfriending someone
   void _showUnfriendConfirmation(int friendUid, String friendName) {
     showDialog(
@@ -127,7 +128,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     );
   }
 
-  //Confirmation Dialogue for Deleting a past trip
+  //Confirmation Dialogue for deleting a past trip
   void _showDeleteCityEntryDialogue(int entryId, String currentUid) {
     showDialog(
       context: context,
@@ -279,7 +280,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    userName,
+                    "@$userName",
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -449,7 +450,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
           children: [
             Text('Appearance', style: Theme.of(context).textTheme.titleLarge),
             ListTile(
-              title: const Text('Dark Mode'),
+              title: const Text('Light Mode'),
               trailing: Switch(
                 value: themeNotifier.value == ThemeMode.dark,
                 onChanged: (bool value) {
