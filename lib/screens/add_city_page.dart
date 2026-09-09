@@ -133,10 +133,6 @@ class _AddCityPageState extends State<AddCityPage> {
     });
 
     bool hasErrors = false;
-    if (selectedResult == null) {
-      nameError = 'Please select a city from the list';
-      hasErrors = true;
-    }
     if (_arrivalDate == null || _departureDate == null) {
       _dateError = 'Please select your visit dates';
       hasErrors = true;
@@ -170,8 +166,8 @@ class _AddCityPageState extends State<AddCityPage> {
       rating: _selectedRating,
       comment: _commentController.text.trim(),
       createdAt: DateTime.now(),
-      latitude: selectedResult!.latitude,
-      longitude: selectedResult!.longitude,
+      latitude: widget.editingEntry?.latitude ?? selectedResult!.latitude,
+      longitude: widget.editingEntry?.longitude ?? selectedResult!.longitude,
       imagePath: imagePath,
     );
 
