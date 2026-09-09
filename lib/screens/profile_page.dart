@@ -452,10 +452,11 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
             ListTile(
               title: const Text('Light Mode'),
               trailing: Switch(
-                value: themeNotifier.value == ThemeMode.dark,
+
+                value: themeNotifier.value == ThemeMode.light,
                 onChanged: (bool value) {
                   setState(() {
-                    themeNotifier.value = value ? ThemeMode.dark : ThemeMode.light;
+                    themeNotifier.value = value ? ThemeMode.light : ThemeMode.dark;
                   });
                 },
               ),
