@@ -45,12 +45,25 @@ class _SignupPageState extends State<SignupPage> {
             (route) => false,
         );
       }
+    } on Exception catch (e) {
+      if (mounted) {
+        setState(() {
+          final errorString = e.toString().toLowerCase();
+          if (errorString.contains('email-already-in-use')) {
+            _errorMessage = 'This email is already registered. Try logging in.';
+          } else if (errorString.contains('weak-password')) {
+            _errorMessage = 'Password is too weak.';
+          } else if (errorString.contains('username-taken')) {
+            _errorMessage = 'Username is already taken.';
+          } else {
+            _errorMessage = 'An error occurred. Please try again.';
+          }
+        });
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = e.toString().contains('Username already taken')
-              ? 'Username is already taken'
-              : 'Something went wrong. Please try again';
+          _errorMessage = 'An unexpected error occurred.';
         });
       }
     } finally {
