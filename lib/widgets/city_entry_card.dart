@@ -24,8 +24,12 @@ class CityEntryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final Color textPrimary = isDarkMode ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final Color textSecondary = isDarkMode ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+
     return Card(
-      color: Theme.of(context).brightness == Brightness.dark
+      color: isDarkMode
         ? AppColors.surfaceCardDark
         : AppColors.surfaceCardLight,
       margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
@@ -46,8 +50,8 @@ class CityEntryCard extends StatelessWidget {
                     children: [
                       Text(
                         log.name,
-                        style: const TextStyle(
-                          color: Color(0xFFF5F0EB),
+                        style: TextStyle(
+                          color: textPrimary,
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                           letterSpacing: -0.5,
@@ -56,8 +60,8 @@ class CityEntryCard extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         '@${log.userName}',
-                        style: const TextStyle(
-                          color: Color(0xFF7A6F65),
+                        style:  TextStyle(
+                          color: textSecondary,
                           fontSize: 13,
                         ),
                       ),
@@ -86,14 +90,14 @@ class CityEntryCard extends StatelessWidget {
                     fontSize: 14,
                   ),
                 ),
-                const Text(
+                Text(
                   ' • ',
-                  style: TextStyle(color: Color(0xFF7A6F65)),
+                  style: TextStyle(color: textSecondary),
                 ),
                 Text(
                   _formatDateRange(log.arrivalDate, log.departureDate),
-                  style: const TextStyle(
-                    color: Color(0xFF7A6F65),
+                  style: TextStyle(
+                    color: textSecondary,
                     fontSize: 14,
                   ),
                 ),
@@ -116,8 +120,8 @@ class CityEntryCard extends StatelessWidget {
               const SizedBox(height: 16),
               Text(
                 log.comment!,
-                style: const TextStyle(
-                  color: Color(0xFFF5F0EB),
+                style: TextStyle(
+                  color: textPrimary,
                   fontStyle: FontStyle.italic,
                   fontSize: 15,
                   height: 1.4,
