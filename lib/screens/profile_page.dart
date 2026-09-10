@@ -246,6 +246,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     final statsService = StatsService(cityRepository: widget.cityRepository);
 
     return FutureBuilder<List<dynamic>>(
+      // Fetches user profile data, travel logs, and travel statistics in parallel.
       future: Future.wait([
         widget.cityRepository.getEntries(widget.viewedUid),
         widget.userRepository.getUser(widget.viewedUid),
@@ -341,6 +342,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     final currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
 
     return FutureBuilder<List<dynamic>>(
+      // Loads pending friend requests and current friends simultaneously.
       future: Future.wait([
         widget.friendshipRepository.pendingReceivedBy(currentUid),
         widget.friendshipRepository.friendsOf(currentUid),
