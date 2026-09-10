@@ -122,6 +122,7 @@ class _SearchPageState extends State<SearchPage> {
   Widget _buildUserTile(_UserSearchResult result) {
     final theme = Theme.of(context);
     final currentUid = FirebaseAuth.instance.currentUser?.uid;
+    final initialLetter = result.user.userName.isNotEmpty ? result.user.userName[0].toUpperCase() : null;
 
     return Material(
       color: theme.brightness == Brightness.light ? Colors.white : AppColors.surfaceCardDark,
@@ -143,13 +144,31 @@ class _SearchPageState extends State<SearchPage> {
           );
         },
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        leading: CircleAvatar(
+          backgroundColor: AppColors.primaryOrange,
+          foregroundColor: Colors.white,
+          child: Text(initialLetter ?? '', style: const TextStyle(fontWeight: FontWeight.bold))
+        ),
         title: Text(result.user.userName, style: const TextStyle(fontWeight: FontWeight.bold)),
-        trailing: FriendshipActionButton(
-          friendship: result.friendship,
-          currentUid: currentUid,
-          onAdd: () => _sendRequest(result),
-          onRespond: (accept) => _respondToRequest(result, accept: accept),
-        )
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            FriendshipActionButton(
+              friendship: result.friendship,
+              currentUid: currentUid,
+              onAdd: () => _sendRequest(result),
+              onRespond: (accept) => _respondToRequest(result, accept: accept),
+            ),
+            const SizedBox(width: 4),
+            Icon(
+              Icons.chevron_right,
+              size: 20,
+              color: theme.brightness == Brightness.light
+                ? AppColors.textSecondaryLight
+                : AppColors.textSecondaryDark,
+            )
+          ],
+        ),
       ),
     );
   }
