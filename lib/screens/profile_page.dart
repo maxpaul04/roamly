@@ -104,7 +104,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   }
 
   //Confirmation Dialogue for unfriending someone
-  void _showUnfriendConfirmation(int friendUid, String friendName) {
+  void _showUnfriendConfirmation(int friendshipId, String friendName) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -118,7 +118,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              await widget.friendshipRepository.removeFriend(friendUid);
+              await widget.friendshipRepository.removeFriend(friendshipId);
               setState(() {});
             },
             child: const Text('Unfriend', style: TextStyle(color: Colors.red)),
@@ -502,7 +502,6 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                       icon: const Icon(Icons.delete, size: 20),
                       onPressed: () async {
                         _showDeleteCityEntryDialogue(log.id, currentUid);
-                        setState(() {});
                       },
                     ),
                   ],

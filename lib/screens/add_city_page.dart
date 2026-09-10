@@ -399,7 +399,7 @@ class _AddCityPageState extends State<AddCityPage> {
                     constraints: const BoxConstraints(minHeight: 160),
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceCardDark,
+                      color: Colors.grey.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     clipBehavior: Clip.antiAlias,
