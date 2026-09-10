@@ -39,7 +39,7 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStateMixin{
+class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin{
   final _authService = AuthService();
 
   //check if the viewed user is the current user for conditional rendering
@@ -53,19 +53,22 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     super.initState();
 
     _initTabController();
-    // Triggers a rebuild if the Firebase user's metadata (like displayName) updates
-    FirebaseAuth.instance.userChanges().listen((user) {
-      if (mounted) {
-        _initTabController();
-        setState(() {});
-      }
-    });
   }
 
   @override
   void dispose() {
     _tabController?.dispose();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant ProfilePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if(oldWidget.viewedUid != widget.viewedUid) {
+      setState(() {
+        _initTabController();
+      });
+    }
   }
 
   void _initTabController() {

@@ -39,12 +39,17 @@ class _SignupPageState extends State<SignupPage> {
         _passwordController.text.trim(),
         _usernameController.text.trim(),
       );
-      if (mounted) {
+
+      if(!mounted) return;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if(!mounted) return;
         Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => MainNavigation()),
-            (route) => false,
+            MaterialPageRoute(builder: (context) => const MainNavigation()),
+            (route) => false
         );
-      }
+      });
+
     } on Exception catch (e) {
       if (mounted) {
         setState(() {

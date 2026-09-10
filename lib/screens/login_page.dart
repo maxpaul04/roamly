@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../services/auth_service.dart';
 import 'signup_page.dart';
 
@@ -34,9 +35,14 @@ class _LoginPageState extends State<LoginPage> {
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
-      if (mounted) {
-        Navigator.pop(context);
-      }
+
+      FocusManager.instance.primaryFocus?.unfocus();
+      TextInput.finishAutofillContext(shouldSave: false); // tell the platform autofill session to close before we navigate away
+
+      if (!mounted) return;
+
+      Navigator.of(context).pop();
+
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -45,9 +51,7 @@ class _LoginPageState extends State<LoginPage> {
       }
     } finally {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
       }
     }
   }
@@ -86,6 +90,7 @@ class _LoginPageState extends State<LoginPage> {
               
               TextField(
                 controller: _emailController,
+                autofillHints: [],
                 decoration: const InputDecoration(
                   labelText: 'Email',
                   prefixIcon: Icon(Icons.email_outlined),
@@ -97,6 +102,7 @@ class _LoginPageState extends State<LoginPage> {
               
               TextField(
                 controller: _passwordController,
+                autofillHints: [],
                 decoration: const InputDecoration(
                   labelText: 'Password',
                   prefixIcon: Icon(Icons.lock_outline),
