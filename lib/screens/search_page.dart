@@ -56,6 +56,7 @@ class _SearchPageState extends State<SearchPage> {
     super.dispose();
   }
 
+  // Slows down search inputs to prevent redundant API and database queries.
   void _onSearchChanged(String query) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     
@@ -77,6 +78,7 @@ class _SearchPageState extends State<SearchPage> {
     });
   }
 
+  // Queries the external city API for matching locations.
   Future<void> _searchCities(String query) async {
     setState(() => _isSearching = true);
     try {
@@ -87,6 +89,7 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
+  // Searches for other registered users and loads their friendship statuses.
   Future<void> _searchUsers(String query) async {
     final currentUid = FirebaseAuth.instance.currentUser?.uid;
     if (currentUid == null) return;
@@ -458,6 +461,7 @@ class _CityDetailsSheetState extends State<_CityDetailsSheet> {
     ));
   }
 
+  // Toggles the city's presence in the user's local SQFlite wishlist.
   Future<void> _toggleWishlist() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
