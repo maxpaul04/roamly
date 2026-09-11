@@ -29,7 +29,7 @@ class _StatsPageState extends State<StatsPage> {
   List<CityEntry?> _myEntries = [];
   bool _showMyEntries = false;
   String? _currentUid;
-  bool get _isOwnProfile => _currentUid == null || _currentUid == widget.viewedUid;
+  bool get _isOwnProfile => _currentUid == null && _currentUid == widget.viewedUid;
 
 
   @override
@@ -61,37 +61,39 @@ class _StatsPageState extends State<StatsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final bool showLoggedOutNotice = _currentUid == null && widget.viewedUid.isEmpty;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Travel Stats'),
         centerTitle: true,
         elevation: 0,
-        actions:
-            //if on your own profile, gives the choice to overlay your wishlisted cities
-          _isOwnProfile
-            ? [IconButton(
+        actions: showLoggedOutNotice
+          ? []
+          : _isOwnProfile
+          ? [IconButton(
             icon: Icon(
+              //if on your own profile, gives the choice to overlay your wishlisted cities
               _showWishlist ? Icons.layers : Icons.layers_outlined,
               color: _showWishlist ? Colors.blue : null,
             ),
             tooltip: 'Overlay my Wishlist',
             onPressed: () => setState(() => _showWishlist = !_showWishlist),
-          )]
-            //if on another users stat-page, gives the choice to overlay your own trips
-            : [
-              IconButton(
-                icon: Icon(
-                  _showMyEntries ? Icons.layers : Icons.layers_outlined,
-                  color: _showMyEntries ? Colors.green : null,
-                ),
-                tooltip: 'Overlay my Pins',
-                onPressed: () => setState(() => _showMyEntries = !_showMyEntries),
-              ),
-            ],
+            )]
+          : [IconButton(
+            icon: Icon(
+              //if on another users stat-page, gives the choice to overlay your own trips
+              _showMyEntries ? Icons.layers : Icons.layers_outlined,
+              color: _showMyEntries ? Colors.green : null,
+          ),
+            tooltip: 'Overlay my Pins',
+            onPressed: () => setState(() => _showMyEntries = !_showMyEntries),
+            )],
       ),
 
-      body: _stats == null
+      body: showLoggedOutNotice
+          ? const _LoggedOutStatsNotice()
+          : _stats == null
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -263,8 +265,6 @@ class _StatsPageState extends State<StatsPage> {
     );
   }
 
-
-
   Widget _buildStatsGrid(Stats stats) {
     final secondaryStats = [
       _StatTile(label: 'Avg Rating', value: stats.averageRating > 0 ? stats.averageRating.toStringAsFixed(1) : '-', icon: Icons.star_outline),
@@ -285,6 +285,7 @@ class _StatsPageState extends State<StatsPage> {
   }
 }
 
+//defines the stat tiles shown above the map
 class _HeroStat extends StatelessWidget {
   final String label;
   final String value;
@@ -314,6 +315,7 @@ class _HeroStat extends StatelessWidget {
   }
 }
 
+//defines the stats tiles shown below the map
 class _StatTile extends StatelessWidget {
   final String label;
   final String value;
@@ -363,6 +365,7 @@ class _StatTile extends StatelessWidget {
   }
 }
 
+//defines the legend for the map
 class _LegendDot extends StatelessWidget {
   final Color color;
   final String label;
@@ -381,6 +384,32 @@ class _LegendDot extends StatelessWidget {
         const SizedBox(width: 4),
         Text(label, style: const TextStyle(fontSize: 12)),
       ],
+    );
+  }
+}
+
+//Notice styled when logged out prompting the user to log in to see their stats
+class _LoggedOutStatsNotice extends StatelessWidget {
+  const _LoggedOutStatsNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.bar_chart_outlined, size: 48, color: AppColors.primaryOrange),
+            const SizedBox(height: 16),
+            Text(
+              'Log in to see your stats',
+              style: Theme.of(context).textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
