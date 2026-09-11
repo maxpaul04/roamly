@@ -25,11 +25,13 @@ class _StatsPageState extends State<StatsPage> {
 
   List<WishlistEntry> _wishlistEntries = [];
   bool _showWishlist = false;
-
   List<CityEntry?> _myEntries = [];
   bool _showMyEntries = false;
+
   String? _currentUid;
   bool get _isOwnProfile => _currentUid != null && _currentUid == widget.viewedUid;
+
+  _PinInfo? _selectedPin;
 
 
   @override
@@ -177,39 +179,44 @@ class _StatsPageState extends State<StatsPage> {
   }
 
   Widget _buildMap() {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: SizedBox(
         height: 260,
-        child: FlutterMap(
-          options: const MapOptions(
-            initialCenter: LatLng(51, 10),
-            initialZoom: 1.5,
-            interactionOptions: InteractionOptions(
-              flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag | InteractiveFlag.doubleTapZoom
-            )
-          ),
+        // overlay the info card on top of the map
+        child: Stack(
           children: [
-            TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              userAgentPackageName: 'com.roamly.app',
-            ),
-            MarkerLayer(
-              markers: _entries.map((entry) => Marker(
-                point: LatLng(entry.latitude, entry.longitude),
-                width: 30,
-                height: 30,
-                child: GestureDetector(
-                  onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('${entry.name} - ${entry.rating.toStringAsFixed(1)} ★'),
-                      duration: const Duration(seconds: 2),
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    )
-                  ),
+            FlutterMap(
+              options: MapOptions(
+                initialCenter: const LatLng(51, 10),
+                initialZoom: 1.5,
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag | InteractiveFlag.doubleTapZoom
+                ),
+
+                // tapping empty map area dismisses the card
+                onTap: (tapPosition, point) => setState(() => _selectedPin = null),
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.roamly.app',
+                ),
+
+                MarkerLayer(
+                  markers: _entries.map((entry) => Marker(
+                    point: LatLng(entry.latitude, entry.longitude),
+                    width: 30,
+                    height: 30,
+                    child: GestureDetector(
+                      onTap: () => setState(() => _selectedPin = _PinInfo(
+                        name: entry.name,
+                        subtitle: '${entry.rating.toStringAsFixed(1)} ★',
+                        icon: Icons.location_on,
+                        color: AppColors.primaryOrange,
+                      )),
                   child: const Icon(
                     Icons.location_on,
                     color: AppColors.primaryOrange,
@@ -226,20 +233,16 @@ class _StatsPageState extends State<StatsPage> {
               width: 30,
               height: 30,
               child: GestureDetector(
-                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('${entry.name} - ${entry.rating.toStringAsFixed(1)} ★'),
-                    duration: const Duration(seconds: 2),
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)
-                    ),
-                  ),
-                ),
+                onTap: () => setState(() => _selectedPin = _PinInfo(
+                  name: entry.name,
+                  subtitle: '${entry.rating.toStringAsFixed(1)} ★',
+                  icon: Icons.location_pin,
+                  color: Colors.green,
+                )),
                 child: const Icon(Icons.location_pin, color: Colors.green),
               ),
             )).toList(),
-            ),
+          ),
           //condition rendering for pins of wishlisted cities
           if (_showWishlist)
             MarkerLayer(
@@ -248,22 +251,64 @@ class _StatsPageState extends State<StatsPage> {
                 width: 30,
                 height: 30,
                 child: GestureDetector(
-                  onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('${w.cityName}  •  Wishlist'),
-                      duration: const Duration(seconds: 2),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  ),
+                  onTap: () => setState(() => _selectedPin = _PinInfo(
+                    name: w.cityName,
+                    subtitle: 'Wishlist',
+                    icon: Icons.bookmarks,
+                    color: Colors.blue,
+                  )),
                   child: const Icon(Icons.bookmarks, color: Colors.blue, size: 25),
                 ),
               )).toList(),
             ),
           ],
         ),
-      )
-    );
-  }
+        if (_selectedPin != null)
+          Positioned(
+            left: 12,
+            right: 12,
+            bottom: 12,
+            child: Material(
+              borderRadius: BorderRadius.circular(10),
+              color: isDark ? AppColors.surfaceCardDark : AppColors.surfaceLight,
+              elevation: 4,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                child: Row(
+                  children: [
+                    Icon(_selectedPin!.icon, color: _selectedPin!.color, size: 20),
+                    const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _selectedPin!.name,
+                      style: TextStyle(color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                    Text(
+                      _selectedPin!.subtitle,
+                      style: TextStyle(color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                    ),
+                  const SizedBox(width: 4),
+                  // manual close, since tapping the card itself won't hit the map's onTap
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 16),
+                    color: AppColors.textSecondaryLight,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () => setState(() => _selectedPin = null),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 
   Widget _buildStatsGrid(Stats stats) {
     final secondaryStats = [
@@ -416,4 +461,20 @@ class _LoggedOutStatsNotice extends StatelessWidget {
       ),
     );
   }
+}
+
+
+//Helper class for clicking the pins
+class _PinInfo {
+  final String name;
+  final String subtitle; // e.g. "4.5 Stars" or "Wishlist"
+  final IconData icon;
+  final Color color;
+
+  const _PinInfo({
+    required this.name,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+  });
 }
