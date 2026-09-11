@@ -30,6 +30,7 @@ class AuthService {
         uid: credential.user!.uid,
         email: email,
         userName: userName,
+        profilePicturePath: null,
       );
       await _userRepository.saveUser(newUser);
     }

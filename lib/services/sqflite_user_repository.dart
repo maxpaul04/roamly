@@ -61,4 +61,20 @@ class SqfliteUserRepository implements UserRepository {
     );
     return maps.map(UserModel.fromMap).toList();
   }
+
+  @override
+  Future<void> updateProfilePicture(String uid, String? imagePath) async {
+    final db = await _dbHelper.database;
+    await db.update(
+      'users',
+      {'profilePicturePath': imagePath},
+      where: 'uid = ?',
+      whereArgs: [uid],
+    );
+  }
+
+  @override
+  Future<void> deleteProfilePicture(String uid) async {
+    await updateProfilePicture(uid, null);
+  }
 }

@@ -41,7 +41,7 @@ class MockUserService {
   }
 
   Future<void> _seedOneUser(String uid, String email, String username) async {
-    await userRepository.saveUser(UserModel(uid: uid, email: email, userName: username,));
+    await userRepository.saveUser(UserModel(uid: uid, email: email, userName: username, profilePicturePath: null));
 
     final entries = _sampleEntriesByUid[uid]?.call(uid, username) ?? const [];
     for (final entry in entries) {

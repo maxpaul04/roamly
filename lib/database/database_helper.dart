@@ -40,7 +40,8 @@ class DatabaseHelper {
         CREATE TABLE users(
           uid TEXT PRIMARY KEY,
           email TEXT NOT NULL,
-          username TEXT NOT NULL
+          username TEXT NOT NULL,
+          profilePicturePath TEXT
         )
         ''');
         
@@ -115,6 +116,11 @@ class DatabaseHelper {
             UNIQUE(requesterUid, receiverUid)
           )
           ''');
+        }
+        if (oldVersion < 7) {
+          await db.execute('''
+          ALTER TABLE users 
+          ADD COLUMN profilePicturePath TEXT''');
         }
       },
     );
