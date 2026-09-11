@@ -8,6 +8,7 @@ import 'package:roamly/screens/stats_page.dart';
 import 'package:roamly/services/city_repository.dart';
 import 'package:roamly/services/friendship_repository.dart';
 import 'package:roamly/services/user_repository.dart';
+import 'package:roamly/services/wishlist_repository.dart';
 import 'package:roamly/themes/colors.dart';
 import 'package:roamly/widgets/city_entry_card.dart';
 import '../main.dart';
@@ -15,6 +16,7 @@ import '../models/city_entry_model.dart';
 import '../models/friendship_model.dart';
 import '../models/stats.dart';
 import '../models/user_model.dart';
+import '../models/wishlist_entry_model.dart';
 import '../services/auth_service.dart';
 import '../services/image_storage_service.dart';
 import '../services/stats_service.dart';
@@ -26,6 +28,7 @@ import 'login_page.dart';
 class ProfilePage extends StatefulWidget {
   final CityRepository cityRepository;
   final UserRepository userRepository;
+  final WishlistRepository wishlistRepository;
   final FriendshipRepository friendshipRepository;
   final String viewedUid;
   final VoidCallback onNavigateToStats;
@@ -35,6 +38,7 @@ class ProfilePage extends StatefulWidget {
     required this.cityRepository,
     required this.userRepository,
     required this.friendshipRepository,
+    required this.wishlistRepository,
     required this.viewedUid,
     required this.onNavigateToStats,
   });
@@ -43,12 +47,13 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin{
+class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin {
   final _authService = AuthService();
   final _imageStorageService = ImageStorageService();
 
   //check if the viewed user is the current user for conditional rendering
-  bool get isOwnProfile => FirebaseAuth.instance.currentUser?.uid == widget.viewedUid;
+  bool get isOwnProfile =>
+      FirebaseAuth.instance.currentUser?.uid == widget.viewedUid;
 
   TabController? _tabController;
 
@@ -71,7 +76,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
   @override
   void didUpdateWidget(covariant ProfilePage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if(oldWidget.viewedUid != widget.viewedUid) {
+    if (oldWidget.viewedUid != widget.viewedUid) {
       setState(() {
         _initTabController();
       });
@@ -93,23 +98,25 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
   void _showLogoutConfirmation() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to log out of Roamly?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _authService.signOut();
-            },
-            child: const Text('Logout', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
+      builder: (context) =>
+        AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to log out of Roamly?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _authService.signOut();
+              },
+              child: const Text(
+                  'Logout', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        ),
     );
   }
 
@@ -117,24 +124,26 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
   void _showUnfriendConfirmation(int friendshipId, String friendName) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Remove Friend'),
-        content: Text('Are you sure you want to unfriend $friendName?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await widget.friendshipRepository.removeFriend(friendshipId);
-              setState(() {});
-            },
-            child: const Text('Unfriend', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
+      builder: (context) =>
+        AlertDialog(
+          title: const Text('Remove Friend'),
+          content: Text('Are you sure you want to unfriend $friendName?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await widget.friendshipRepository.removeFriend(friendshipId);
+                setState(() {});
+              },
+              child: const Text(
+                  'Unfriend', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        ),
     );
   }
 
@@ -142,24 +151,26 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
   void _showDeleteCityEntryDialogue(int entryId, String currentUid) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Trip'),
-        content: Text('Are you sure you want to delete your trip?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await widget.cityRepository.deleteEntry(entryId, currentUid);
-              setState(() {});
-            },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
+      builder: (context) =>
+        AlertDialog(
+          title: const Text('Delete Trip'),
+          content: Text('Are you sure you want to delete your trip?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await widget.cityRepository.deleteEntry(entryId, currentUid);
+                setState(() {});
+              },
+              child: const Text(
+                  'Delete', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        ),
     );
   }
 
@@ -271,11 +282,13 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
               SizedBox(
                 width: 200,
                 child: ElevatedButton(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginPage())
-                  ),
-                  style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                  onPressed: () =>
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginPage())
+                    ),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16)),
                   child: const Text('Get Started'),
                 ),
               ),
@@ -346,23 +359,24 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
             const SizedBox(height: 24),
 
             Center(child: SizedBox(
-                width: 300,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    if (isOwnProfile) {
-                      widget.onNavigateToStats();
-                    } else {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => StatsPage(viewedUid: widget.viewedUid),
-                        ),
-                      );
-                    }
-                  },
-                  icon: const Icon(Icons.bar_chart),
-                  label: const Text('View Travel Stats'),
-                ),
+              width: 300,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  if (isOwnProfile) {
+                    widget.onNavigateToStats();
+                  } else {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            StatsPage(viewedUid: widget.viewedUid),
+                      ),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.bar_chart),
+                label: const Text('View Travel Stats'),
               ),
+            ),
             ),
 
             const SizedBox(height: 24),
@@ -449,7 +463,10 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
             if (friends.isNotEmpty) ...[
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                child: Text('Friends', style: Theme.of(context).textTheme.titleMedium),
+                child: Text('Friends', style: Theme
+                    .of(context)
+                    .textTheme
+                    .titleMedium),
               ),
               ...friends.map((friendship) {
                 final otherUid = friendship.requesterUid == currentUid
@@ -459,35 +476,44 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                 return FutureBuilder<UserModel?>(
                   future: widget.userRepository.getUser(otherUid),
                   builder: (context, userSnapshot) {
-                    final friendName = userSnapshot.data?.userName ?? 'Unknown User';
-                    final friendProfilePicturePath = userSnapshot.data?.profilePicturePath;
+                    final friendName = userSnapshot.data?.userName ??
+                        'Unknown User';
+                    final friendProfilePicturePath = userSnapshot.data
+                        ?.profilePicturePath;
 
                     return ListTile(
                       leading: CircleAvatar(
                         backgroundImage: friendProfilePicturePath != null
-                          ? FileImage(File(friendProfilePicturePath))
-                          : null,
+                            ? FileImage(File(friendProfilePicturePath))
+                            : null,
                         child: friendProfilePicturePath == null
-                          ? const Icon(Icons.person, size: 40)
-                          : null,
+                            ? const Icon(Icons.person, size: 40)
+                            : null,
                       ),
 
                       title: Text(friendName),
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ProfilePage(
-                            cityRepository: widget.cityRepository,
-                            userRepository: widget.userRepository,
-                            friendshipRepository: widget.friendshipRepository,
-                            viewedUid: otherUid,
-                            onNavigateToStats: () {  },
+                      onTap: () =>
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ProfilePage(
+                                    cityRepository: widget.cityRepository,
+                                    userRepository: widget.userRepository,
+                                    friendshipRepository: widget
+                                        .friendshipRepository,
+                                    wishlistRepository: widget
+                                        .wishlistRepository,
+                                    viewedUid: otherUid,
+                                    onNavigateToStats: () {},
+                                  ),
+                            ),
                           ),
-                        ),
-                      ),
                       trailing: IconButton(
                         icon: const Icon(Icons.person_remove_outlined),
-                        onPressed: () => _showUnfriendConfirmation(friendship.id, friendName),
+                        onPressed: () =>
+                            _showUnfriendConfirmation(
+                                friendship.id, friendName),
                       ),
                     );
                   },
@@ -508,117 +534,164 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
       future: Future.wait([
         widget.cityRepository.getEntries(currentUid),
         widget.userRepository.getUser(currentUid),
+        widget.wishlistRepository.getWishlist(currentUid),
       ]),
       builder: (context, snapshot) {
-      final logs = (snapshot.data?[0] as List<CityEntry>?) ?? [];
-      final userModel = snapshot.data?[1] as UserModel?;
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-      return ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-        Center(
-          child: Column(
-            children: [
-              CircleAvatar(
-              radius: 40,
-              backgroundImage: userModel?.profilePicturePath != null
-                ? FileImage(File(userModel!.profilePicturePath!))
-                : null,
-              child: userModel?.profilePicturePath == null
-                ? const Icon(Icons.person, size: 40)
-                : null,
-              ),
-            const SizedBox(height: 8),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextButton(
-                      onPressed: () => _pickProfilePicture(currentUid),
-                      child: const Text('Change Profile Picture'),
-                    ),
-                  if (userModel?.profilePicturePath != null)
-                    TextButton(
-                      onPressed: () => _removeProfilePicture(currentUid),
-                      child: const Text('Remove', style: TextStyle(color: Colors.red)),
-                    ),
-                  ],
-                ),
-              if (_profilePictureError != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4.0),
-                  child: Text(
-                    _profilePictureError!,
-                    style: const TextStyle(color: Colors.red),
+        final logs = (snapshot.data?[0] as List<CityEntry>?) ?? [];
+        final userModel = snapshot.data?[1] as UserModel?;
+        final wishlist = (snapshot.data?[2] as List<WishlistEntry>?) ?? [];
+
+        return ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            Center(
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    radius: 40,
+                    backgroundImage: userModel?.profilePicturePath != null
+                      ? FileImage(File(userModel!.profilePicturePath!))
+                      : null,
+                    child: userModel?.profilePicturePath == null
+                      ? const Icon(Icons.person, size: 40)
+                      : null,
                   ),
-                ),
-            ],
-          ),
-        ),
-        const Divider(),
-        const SizedBox(height: 16),
-
-        Text('Appearance', style: Theme.of(context).textTheme.titleLarge),
-        ListTile(
-          title: const Text('Light Mode'),
-          trailing: Switch(
-
-            value: themeNotifier.value == ThemeMode.light,
-            onChanged: (bool value) {
-              setState(() {
-                themeNotifier.value = value ? ThemeMode.light : ThemeMode.dark;
-              });
-            },
-          ),
-        ),
-        const Divider(),
-        const SizedBox(height: 16),
-
-        Text('Manage Trips', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 8),
-
-        if (logs.isEmpty)
-        const Center(child: Text('No trips to manage.'))
-        else
-          ...logs.map((log) => ListTile(
-            title: Text(log.name),
-            subtitle: Text(log.country),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Icon(Icons.star, color: AppColors.primaryOrange, size: 20),
-                const SizedBox(width: 4),
-                Text(log.rating.toString(), style: const TextStyle(
-                  fontSize: 16,
-                  color: AppColors.primaryOrange),
-                ),
-                const SizedBox(width: 8),
-
-                IconButton(
-                  icon: const Icon(Icons.edit, size: 20),
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AddCityPage(
-                        onSave: () => setState(() {}),
-                        repository: widget.cityRepository,
-                        editingEntry: log, // This triggers the edit mode logic
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextButton(
+                        onPressed: () => _pickProfilePicture(currentUid),
+                        child: const Text('Change Profile Picture'),
+                      ),
+                      if (userModel?.profilePicturePath != null)
+                        TextButton(
+                          onPressed: () =>
+                            _removeProfilePicture(currentUid),
+                          child: const Text('Remove', style: TextStyle(
+                            color: Colors.red)),
+                        ),
+                    ],
+                  ),
+                  if (_profilePictureError != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4.0),
+                      child: Text(
+                        _profilePictureError!,
+                        style: const TextStyle(color: Colors.red),
                       ),
                     ),
+                ],
+              ),
+            ),
+            const Divider(),
+
+            Text('Appearance', style: Theme
+                .of(context)
+                .textTheme
+                .titleLarge),
+            ListTile(
+              title: const Text('Light Mode'),
+              trailing: Switch(
+
+                value: themeNotifier.value == ThemeMode.light,
+                onChanged: (bool value) {
+                  setState(() {
+                    themeNotifier.value =
+                    value ? ThemeMode.light : ThemeMode.dark;
+                  });
+                },
+              ),
+            ),
+            const Divider(),
+
+            // Manage Trips section
+            ExpansionTile(
+              title: Text('Manage Trips', style: Theme
+                  .of(context)
+                  .textTheme
+                  .titleLarge),
+              initiallyExpanded: false,
+              children:
+              logs.isEmpty
+                  ? [
+                const Padding(padding: EdgeInsets.all(16),
+                    child: Text('No trips to manage.'))
+              ]
+                  : logs
+                  .map((log) => _buildTripListTile(log, currentUid))
+                  .toList(),
+            ),
+
+
+            //Manage Wishlist Section
+            ExpansionTile(
+              title: Text('Manage Wishlist', style: Theme
+                .of(context)
+                .textTheme
+                .titleLarge),
+              initiallyExpanded: false,
+              children: wishlist.isEmpty
+                ? [
+                const Padding(padding: EdgeInsets.all(16),
+                  child: Text('Your wishlist is empty.'))
+                ]
+                : wishlist.map((item) =>
+                ListTile(
+                  title: Text(item.cityName),
+                  subtitle: Text(item.country),
+                  trailing: IconButton(
+                    icon: const Icon(
+                        Icons.delete_outline, color: Colors.red),
+                    onPressed: () async {
+                      await widget.wishlistRepository.removeFromWishlist(
+                          item.id, currentUid);
+                      setState(() {});
+                    },
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete, size: 20),
-                  onPressed: () async {
-                    _showDeleteCityEntryDialogue(log.id, currentUid);
-                  },
-                ),
-              ],
-            )
-          ),
-        )
-      ],);
+                )).toList(),
+            ),
+          ]);
       }
+    );
+  }
+
+  // Helper to keep the Manage Trips tile code clean
+  Widget _buildTripListTile(CityEntry log, String currentUid) {
+    return ListTile(
+      title: Text(log.name),
+      subtitle: Text(log.country),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.star, color: AppColors.primaryOrange, size: 20),
+          Text(log.rating.toString(),
+              style: const TextStyle(color: AppColors.primaryOrange)),
+          IconButton(
+            icon: const Icon(Icons.edit, size: 20),
+            onPressed: () =>
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                    AddCityPage(
+                      onSave: () => setState(() {}),
+                      repository: widget.cityRepository,
+                      editingEntry: log,
+                    ),
+                ),
+              ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete, size: 20),
+            onPressed: () => _showDeleteCityEntryDialogue(log.id, currentUid),
+          ),
+        ],
+      ),
     );
   }
 }

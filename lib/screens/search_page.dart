@@ -11,7 +11,6 @@ import '../services/friendship_repository.dart';
 import '../services/wishlist_repository.dart';
 import '../services/city_api_service.dart';
 import '../services/mock_city_rating_service.dart';
-import '../services/sqflite_wishlist_repository.dart';
 import '../themes/colors.dart';
 import 'package:fl_chart/fl_chart.dart';
 
@@ -25,6 +24,7 @@ class SearchPage extends StatefulWidget {
   final VoidCallback onCityAdded;
   final UserRepository userRepository;
   final FriendshipRepository friendshipRepository;
+  final WishlistRepository wishlistRepository;
 
   const SearchPage({
     super.key,
@@ -32,6 +32,7 @@ class SearchPage extends StatefulWidget {
     required this.onCityAdded,
     required this.userRepository,
     required this.friendshipRepository,
+    required this.wishlistRepository,
   });
 
   @override
@@ -41,8 +42,7 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   final CityApiService _apiService = CityApiService();
   final TextEditingController _searchController = TextEditingController();
-  final WishlistRepository _wishlistRepository = SqfliteWishlistRepository();
-  
+
   SearchCategory _selectedCategory = SearchCategory.cities;
   List<CitySearchResult> _cityResults = [];
   List<_UserSearchResult> _userResults = [];
@@ -115,9 +115,9 @@ class _SearchPageState extends State<SearchPage> {
       backgroundColor: Colors.transparent,
       builder: (context) => _CityDetailsSheet(
         city: city,
-        wishlistRepository: _wishlistRepository,
         onCityAdded: widget.onCityAdded,
         cityRepository: widget.repository,
+        wishlistRepository: widget.wishlistRepository,
       ),
     );
   }
@@ -141,6 +141,7 @@ class _SearchPageState extends State<SearchPage> {
                 cityRepository: widget.repository,
                 userRepository: widget.userRepository,
                 friendshipRepository: widget.friendshipRepository,
+                wishlistRepository: widget.wishlistRepository,
                 onNavigateToStats: () {},
               ),
             ),

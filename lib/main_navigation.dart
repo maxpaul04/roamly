@@ -5,7 +5,9 @@ import 'package:roamly/services/friendship_repository.dart';
 import 'package:roamly/services/sqflite_city_repository.dart';
 import 'package:roamly/services/sqflite_friendship_repository.dart';
 import 'package:roamly/services/sqflite_user_repository.dart';
+import 'package:roamly/services/sqflite_wishlist_repository.dart';
 import 'package:roamly/services/user_repository.dart';
+import 'package:roamly/services/wishlist_repository.dart';
 import 'screens/feed_page.dart';
 import 'screens/add_city_page.dart';
 import 'screens/stats_page.dart';
@@ -26,6 +28,7 @@ class _MainNavigationState extends State<MainNavigation>{
   final CityRepository _repository = SqfliteCityRepository();
   final UserRepository _userRepository = SqfliteUserRepository();
   final FriendshipRepository _friendshipRepository = SqfliteFriendshipRepository();
+  final WishlistRepository _wishlistRepository = SqfliteWishlistRepository();
 
   void _handleCityAdded() {
     setState(() {
@@ -53,7 +56,8 @@ class _MainNavigationState extends State<MainNavigation>{
             repository: _repository,
             onCityAdded: _handleCityAdded,
             userRepository: _userRepository,
-            friendshipRepository: _friendshipRepository,),
+            friendshipRepository: _friendshipRepository,
+            wishlistRepository: _wishlistRepository,),
           AddCityPage(
               onSave: _handleCityAdded,
               repository: _repository),
@@ -62,6 +66,7 @@ class _MainNavigationState extends State<MainNavigation>{
               cityRepository: _repository,
               userRepository: _userRepository,
               friendshipRepository: _friendshipRepository,
+              wishlistRepository: _wishlistRepository,
               viewedUid: currentUid,
               onNavigateToStats: () => _goToTab(3)),
         ];
