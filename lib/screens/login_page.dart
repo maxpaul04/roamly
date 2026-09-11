@@ -37,7 +37,7 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       FocusManager.instance.primaryFocus?.unfocus();
-      TextInput.finishAutofillContext(shouldSave: false); // tell the platform autofill session to close before we navigate away
+      TextInput.finishAutofillContext(shouldSave: false);
 
       if (!mounted) return;
 

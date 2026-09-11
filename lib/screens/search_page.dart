@@ -204,6 +204,8 @@ class _SearchPageState extends State<SearchPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final isLoggedIn = FirebaseAuth.instance.currentUser != null;
+    final isUserSearchDisabled = _selectedCategory == SearchCategory.users && !isLoggedIn;
     
     return Scaffold(
       appBar: AppBar(
@@ -255,18 +257,29 @@ class _SearchPageState extends State<SearchPage> {
                 
                 // Search Input Field
                 TextField(
+                  enabled: !isUserSearchDisabled,
                   controller: _searchController,
                   onChanged: _onSearchChanged,
                   decoration: InputDecoration(
-                    hintText: _selectedCategory == SearchCategory.cities 
-                        ? 'Search for a city...' 
-                        : 'Search for travelers...',
+                    hintText: isUserSearchDisabled
+                        ? 'Please log in'
+                        : (_selectedCategory == SearchCategory.cities 
+                            ? 'Search for a city...' 
+                            : 'Search for travelers...'),
                     prefixIcon: const Icon(Icons.search, color: AppColors.primaryOrange),
                     filled: true,
                     fillColor: isDark 
                         ? AppColors.surfaceCardDark 
                         : Colors.white,
                     enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: isDark 
+                            ? Colors.white.withValues(alpha: 0.1) 
+                            : Colors.grey.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    disabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(
                         color: isDark 
@@ -304,8 +317,20 @@ class _SearchPageState extends State<SearchPage> {
     if (_selectedCategory == SearchCategory.users) {
       if(FirebaseAuth.instance.currentUser == null) {
         return Center(
-          child: Text('Sign in to search for travelers',
-              style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.textSecondaryLight)),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.lock_outline, size: 48, color: AppColors.textSecondaryLight),
+              const SizedBox(height: 16),
+              Text('Join Roamly to find your friends',
+                  style: theme.textTheme.bodyLarge),
+              TextButton(
+                //navigate to log in when logged out
+                onPressed: () => Navigator.pushNamed(context, '/login'),
+                child: const Text('Log In'),
+              ),
+            ],
+          ),
         );
       }
 

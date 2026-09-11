@@ -29,7 +29,7 @@ class _StatsPageState extends State<StatsPage> {
   List<CityEntry?> _myEntries = [];
   bool _showMyEntries = false;
   String? _currentUid;
-  bool get _isOwnProfile => _currentUid == null && _currentUid == widget.viewedUid;
+  bool get _isOwnProfile => _currentUid != null && _currentUid == widget.viewedUid;
 
 
   @override
@@ -39,7 +39,28 @@ class _StatsPageState extends State<StatsPage> {
     _load();
   }
 
+  @override
+  void didUpdateWidget(covariant StatsPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reload data if the UID changes (e.g., after login)
+    if (oldWidget.viewedUid != widget.viewedUid) {
+      _currentUid = FirebaseAuth.instance.currentUser?.uid;
+      _load();
+    }
+  }
+
   Future<void> _load() async {
+    // If we don't have a UID to view, don't attempt to load
+    if (widget.viewedUid.isEmpty) {
+      setState(() {
+        _entries = [];
+        _stats = null;
+        _wishlistEntries = [];
+        _myEntries = [];
+      });
+      return;
+    }
+
     final cityRepo = SqfliteCityRepository();
     final entries = await cityRepo.getEntries(widget.viewedUid);
     final stats = await StatsService(cityRepository: cityRepo).calculateStatsFor(widget.viewedUid);
@@ -68,27 +89,6 @@ class _StatsPageState extends State<StatsPage> {
         title: const Text('Travel Stats'),
         centerTitle: true,
         elevation: 0,
-        actions: showLoggedOutNotice
-          ? []
-          : _isOwnProfile
-          ? [IconButton(
-            icon: Icon(
-              //if on your own profile, gives the choice to overlay your wishlisted cities
-              _showWishlist ? Icons.layers : Icons.layers_outlined,
-              color: _showWishlist ? Colors.blue : null,
-            ),
-            tooltip: 'Overlay my Wishlist',
-            onPressed: () => setState(() => _showWishlist = !_showWishlist),
-            )]
-          : [IconButton(
-            icon: Icon(
-              //if on another users stat-page, gives the choice to overlay your own trips
-              _showMyEntries ? Icons.layers : Icons.layers_outlined,
-              color: _showMyEntries ? Colors.green : null,
-          ),
-            tooltip: 'Overlay my Pins',
-            onPressed: () => setState(() => _showMyEntries = !_showMyEntries),
-            )],
       ),
 
       body: showLoggedOutNotice
@@ -102,7 +102,7 @@ class _StatsPageState extends State<StatsPage> {
           children: [
             // Hero Stats
             _buildHeroStats(_stats!),
-            const SizedBox(height: 32),
+            const SizedBox(height: 12),
 
             // Map
             _buildMap(),
@@ -117,7 +117,6 @@ class _StatsPageState extends State<StatsPage> {
                   const SizedBox(width: 12),
                   _LegendDot(color: Colors.green, label: 'Me'),
                 ],
-                const SizedBox(width: 16),
                 //Filter to show also wishlisted cities
                 if (_isOwnProfile)
                   FilterChip(
@@ -255,7 +254,7 @@ class _StatsPageState extends State<StatsPage> {
                       behavior: SnackBarBehavior.floating,
                     ),
                   ),
-                  child: const Icon(Icons.bookmark, color: Colors.blue, size: 30),
+                  child: const Icon(Icons.bookmarks, color: Colors.blue, size: 25),
                 ),
               )).toList(),
             ),
@@ -398,14 +397,18 @@ class _LoggedOutStatsNotice extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.bar_chart_outlined, size: 48, color: AppColors.primaryOrange),
+            Icon(Icons.lock_outline, size: 48, color: AppColors.textSecondaryLight),
             const SizedBox(height: 16),
             Text(
               'Log in to see your stats',
-              style: Theme.of(context).textTheme.titleMedium,
+              style: Theme.of(context).textTheme.bodyLarge,
               textAlign: TextAlign.center,
+            ),
+            TextButton(
+              onPressed: () => Navigator.pushNamed(context, '/login'),
+              child: const Text('Log In'),
             ),
           ],
         ),

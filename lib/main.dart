@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:roamly/screens/login_page.dart';
 import 'package:roamly/services/mock_user_service.dart';
 import 'package:roamly/services/sqflite_city_repository.dart';
 import 'package:roamly/services/sqflite_user_repository.dart';
@@ -39,6 +40,9 @@ class MyApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: currentMode,
+          routes: {
+            '/login': (context) => const LoginPage(),
+          },
           home: const MainNavigation(),
         );
       }
