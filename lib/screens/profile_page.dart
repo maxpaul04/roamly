@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:roamly/screens/stats_page.dart';
 
 import 'package:roamly/services/city_repository.dart';
@@ -13,6 +16,7 @@ import '../models/friendship_model.dart';
 import '../models/stats.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
+import '../services/image_storage_service.dart';
 import '../services/stats_service.dart';
 import '../widgets/friendship_action_button.dart';
 import '../widgets/stat_chip.dart';
@@ -41,11 +45,14 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin{
   final _authService = AuthService();
+  final _imageStorageService = ImageStorageService();
 
   //check if the viewed user is the current user for conditional rendering
   bool get isOwnProfile => FirebaseAuth.instance.currentUser?.uid == widget.viewedUid;
 
-   TabController? _tabController;
+  TabController? _tabController;
+
+  String? _profilePictureError;
 
 
   @override
@@ -154,6 +161,41 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
         ],
       ),
     );
+  }
+
+  Future<void> _pickProfilePicture(String uid) async {
+    setState(() => _profilePictureError = null);
+
+    try {
+      final pickedImage = await ImagePicker().pickImage(
+        source: ImageSource.gallery);
+      if (pickedImage == null) return;
+
+      final savedPath = await _imageStorageService.saveProfilePicture(
+        File(pickedImage.path), uid);
+      await widget.userRepository.updateProfilePicture(uid, savedPath);
+
+      if (mounted) setState(() {});
+    } catch (e) {
+      if(mounted) {
+        setState(() => _profilePictureError = 'Failed to upload image.');
+      }
+    }
+  }
+
+  Future<void> _removeProfilePicture(String uid) async {
+    setState(() => _profilePictureError = null);
+
+    try {
+      await _imageStorageService.deleteProfilePicture(uid);
+      await widget.userRepository.updateProfilePicture(uid, null);
+
+      if (mounted) setState(() {});
+    } catch (e) {
+      if(mounted) {
+        setState(() => _profilePictureError = 'Failed to remove image.');
+      }
+    }
   }
 
   @override
@@ -374,9 +416,17 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                   future: widget.userRepository.getUser(friendRequest.requesterUid),
                   builder: (context, userSnapshot) {
                     final requester = userSnapshot.data?.userName ?? 'Unknown User';
+                    final requesterProfilePicturePath = userSnapshot.data?.profilePicturePath;
 
                     return ListTile(
-                      leading: const CircleAvatar(child: Icon(Icons.person)),
+                      leading: CircleAvatar(
+                        backgroundImage: requesterProfilePicturePath != null
+                          ? FileImage(File(requesterProfilePicturePath))
+                          : null,
+                        child: requesterProfilePicturePath == null
+                          ? const Icon(Icons.person, size: 40)
+                          : null,
+                      ),
                       title: Text(requester),
                       subtitle: const Text('Sent you a friend request'),
                       trailing: FriendshipActionButton(
@@ -410,9 +460,18 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                   future: widget.userRepository.getUser(otherUid),
                   builder: (context, userSnapshot) {
                     final friendName = userSnapshot.data?.userName ?? 'Unknown User';
+                    final friendProfilePicturePath = userSnapshot.data?.profilePicturePath;
 
                     return ListTile(
-                      leading: const CircleAvatar(child: Icon(Icons.person)),
+                      leading: CircleAvatar(
+                        backgroundImage: friendProfilePicturePath != null
+                          ? FileImage(File(friendProfilePicturePath))
+                          : null,
+                        child: friendProfilePicturePath == null
+                          ? const Icon(Icons.person, size: 40)
+                          : null,
+                      ),
+
                       title: Text(friendName),
                       onTap: () => Navigator.push(
                         context,
@@ -445,76 +504,120 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
   Widget _buildSettingsTab() {
     final currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
 
-    return FutureBuilder<List<CityEntry>>(
-      future: widget.cityRepository.getEntries(currentUid),
+    return FutureBuilder<List<dynamic>>(
+      future: Future.wait([
+        widget.cityRepository.getEntries(currentUid),
+        widget.userRepository.getUser(currentUid),
+      ]),
       builder: (context, snapshot) {
-        final logs = snapshot.data ?? [];
+      final logs = (snapshot.data?[0] as List<CityEntry>?) ?? [];
+      final userModel = snapshot.data?[1] as UserModel?;
 
-        return ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Text('Appearance', style: Theme.of(context).textTheme.titleLarge),
-            ListTile(
-              title: const Text('Light Mode'),
-              trailing: Switch(
-
-                value: themeNotifier.value == ThemeMode.light,
-                onChanged: (bool value) {
-                  setState(() {
-                    themeNotifier.value = value ? ThemeMode.light : ThemeMode.dark;
-                  });
-                },
+      return ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+        Center(
+          child: Column(
+            children: [
+              CircleAvatar(
+              radius: 40,
+              backgroundImage: userModel?.profilePicturePath != null
+                ? FileImage(File(userModel!.profilePicturePath!))
+                : null,
+              child: userModel?.profilePicturePath == null
+                ? const Icon(Icons.person, size: 40)
+                : null,
               ),
-            ),
-            const Divider(),
-            const SizedBox(height: 16),
-
-            Text('Manage Trips', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
-
-            if (logs.isEmpty)
-            const Center(child: Text('No trips to manage.'))
-            else
-              ...logs.map((log) => ListTile(
-                title: Text(log.name),
-                subtitle: Text(log.country),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
+              Row(
+                mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.star, color: AppColors.primaryOrange, size: 20),
-                    const SizedBox(width: 4),
-                    Text(log.rating.toString(), style: const TextStyle(
-                      fontSize: 16,
-                      color: AppColors.primaryOrange),
+                    TextButton(
+                      onPressed: () => _pickProfilePicture(currentUid),
+                      child: const Text('Change Profile Picture'),
                     ),
-                    const SizedBox(width: 8),
-
-                    IconButton(
-                      icon: const Icon(Icons.edit, size: 20),
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AddCityPage(
-                            onSave: () => setState(() {}),
-                            repository: widget.cityRepository,
-                            editingEntry: log, // This triggers the edit mode logic
-                          ),
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete, size: 20),
-                      onPressed: () async {
-                        _showDeleteCityEntryDialogue(log.id, currentUid);
-                      },
+                  if (userModel?.profilePicturePath != null)
+                    TextButton(
+                      onPressed: () => _removeProfilePicture(currentUid),
+                      child: const Text('Remove', style: TextStyle(color: Colors.red)),
                     ),
                   ],
-                )
-              ),
+                ),
+              if (_profilePictureError != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
+                  child: Text(
+                    _profilePictureError!,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const Divider(),
+        const SizedBox(height: 16),
+
+        Text('Appearance', style: Theme.of(context).textTheme.titleLarge),
+        ListTile(
+          title: const Text('Light Mode'),
+          trailing: Switch(
+
+            value: themeNotifier.value == ThemeMode.light,
+            onChanged: (bool value) {
+              setState(() {
+                themeNotifier.value = value ? ThemeMode.light : ThemeMode.dark;
+              });
+            },
+          ),
+        ),
+        const Divider(),
+        const SizedBox(height: 16),
+
+        Text('Manage Trips', style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 8),
+
+        if (logs.isEmpty)
+        const Center(child: Text('No trips to manage.'))
+        else
+          ...logs.map((log) => ListTile(
+            title: Text(log.name),
+            subtitle: Text(log.country),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Icon(Icons.star, color: AppColors.primaryOrange, size: 20),
+                const SizedBox(width: 4),
+                Text(log.rating.toString(), style: const TextStyle(
+                  fontSize: 16,
+                  color: AppColors.primaryOrange),
+                ),
+                const SizedBox(width: 8),
+
+                IconButton(
+                  icon: const Icon(Icons.edit, size: 20),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AddCityPage(
+                        onSave: () => setState(() {}),
+                        repository: widget.cityRepository,
+                        editingEntry: log, // This triggers the edit mode logic
+                      ),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete, size: 20),
+                  onPressed: () async {
+                    _showDeleteCityEntryDialogue(log.id, currentUid);
+                  },
+                ),
+              ],
             )
-          ],
-        );
+          ),
+        )
+      ],);
       }
     );
   }
