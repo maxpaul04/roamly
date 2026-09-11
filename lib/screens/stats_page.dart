@@ -109,14 +109,6 @@ class _StatsPageState extends State<StatsPage> {
             const SizedBox(height: 10),
             Row(
               children: [
-                if (!_isOwnProfile && _showMyEntries) ...[
-                  const SizedBox(width: 8),
-                  _LegendDot(color: AppColors.primaryOrange, label: 'Them'),
-                ],
-                if (!_isOwnProfile && _showMyEntries) ...[
-                  const SizedBox(width: 12),
-                  _LegendDot(color: Colors.green, label: 'Me'),
-                ],
                 //Filter to show also wishlisted cities
                 if (_isOwnProfile)
                   FilterChip(
@@ -147,6 +139,15 @@ class _StatsPageState extends State<StatsPage> {
                   selectedColor: Colors.blue,
                   labelStyle: TextStyle(color: _showMyEntries ? AppColors.textPrimaryDark : null),
                 ),
+                const SizedBox(width: 8),
+                if (!_isOwnProfile && _showMyEntries) ...[
+                  const SizedBox(width: 8),
+                  _LegendDot(color: AppColors.primaryOrange, label: 'Them'),
+                ],
+                if (!_isOwnProfile && _showMyEntries) ...[
+                  const SizedBox(width: 12),
+                  _LegendDot(color: Colors.green, label: 'Me'),
+                ],
               ],
             ),
 
