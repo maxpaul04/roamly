@@ -23,7 +23,7 @@ class ImageStorageService {
     final savedPath = '${profileDir.path}/$uid.jpg';
     await sourceFile.copy(savedPath);
 
-    // Bust Flutter's image cache so the new file is picked up immediatel instead of showing the stale cached version at the same path.
+    // Bust Flutter's image cache so the new file is picked up immediately instead of showing the stale cached version at the same path.
     imageCache.evict(FileImage(File(savedPath)));
 
     return savedPath;
