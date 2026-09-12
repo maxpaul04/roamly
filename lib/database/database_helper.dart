@@ -76,7 +76,7 @@ class DatabaseHelper {
             userId TEXT NOT NULL,
             userName TEXT NOT NULL,
             text TEXT NOT NULL,
-            createdAt TEXT NOT NULL,
+            createdAt TEXT NOT NULL
             )
         ''');
       },
@@ -96,11 +96,7 @@ class DatabaseHelper {
           ''');
         }
         if (oldVersion < 4) {
-          try {
-            await db.execute('ALTER TABLE city_entries ADD COLUMN imagePath TEXT');
-          } catch (e) {
-            print("Database Upgrade: imagePath column might already exist: $e");
-          }
+          await db.execute('ALTER TABLE city_entries ADD COLUMN imagePath TEXT');
         }
         if (oldVersion < 5) {
           await db.execute('''
@@ -134,7 +130,16 @@ class DatabaseHelper {
           ADD COLUMN profilePicturePath TEXT''');
         }
         if (oldVersion < 8) {
-
+          await db.execute('''
+          CREATE TABLE comments(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cityEntryId INTEGER NOT NULL,
+            userId TEXT NOT NULL,
+            userName TEXT NOT NULL,
+            text TEXT NOT NULL,
+            createdAt TEXT NOT NULL
+          )
+          ''');
         }
       },
     );
