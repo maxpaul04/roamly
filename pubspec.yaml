@@ -22,10 +22,16 @@ dependencies:
   flutter_map: ^8.3.2
   latlong2: ^0.10.1
 
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  image_path: "lib/assets/roamly_app_icon.jpg"
 
 flutter:
   uses-material-design: true
