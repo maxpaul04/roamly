@@ -15,7 +15,7 @@ class DatabaseHelper {
     final path = join(await getDatabasesPath(), 'roamly.db');
     return openDatabase(
       path,
-      version: 7,
+      version: 8,
       onCreate: (db, version) async {
         await db.execute('''
         CREATE TABLE city_entries(
@@ -67,6 +67,17 @@ class DatabaseHelper {
            createdAt TEXT NOT NULL,
            UNIQUE(requesterUid, receiverUid)
          )
+        ''');
+
+        await db.execute('''
+          CREATE TABLE comments(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cityEntryId INTEGER NOT NULL,
+            userId TEXT NOT NULL,
+            userName TEXT NOT NULL,
+            text TEXT NOT NULL,
+            createdAt TEXT NOT NULL,
+            )
         ''');
       },
 
@@ -121,6 +132,9 @@ class DatabaseHelper {
           await db.execute('''
           ALTER TABLE users 
           ADD COLUMN profilePicturePath TEXT''');
+        }
+        if (oldVersion < 8) {
+
         }
       },
     );

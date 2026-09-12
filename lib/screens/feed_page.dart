@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:roamly/services/city_repository.dart';
+import 'package:roamly/services/comment_repository.dart';
 import '../models/city_entry_model.dart';
 import '../widgets/city_entry_card.dart';
 
 class FeedPage extends StatefulWidget {
   final int reloadTrigger;
-  final CityRepository repository;
+  final CityRepository cityRepository;
+  final CommentRepository commentRepository;
 
   const FeedPage({
     super.key,
     required this.reloadTrigger,
-    required this.repository,
+    required this.cityRepository,
+    required this.commentRepository
   });
 
   @override
@@ -19,6 +22,7 @@ class FeedPage extends StatefulWidget {
 
 class _FeedPageState extends State<FeedPage> {
   List<CityEntry> _logs = [];
+  Map<int, int> _commentCounts = {};
 
   @override
   void initState() {
@@ -35,9 +39,12 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   Future<void> _loadData() async {
-    final data = await widget.repository.getAllEntries();
+    final data = await widget.cityRepository.getAllEntries();
+    final ids = data.map((e) => e.id).toList();
+    final counts = await widget.commentRepository.getCommentCounts(ids);
     setState(() {
       _logs = data;
+      _commentCounts = counts;
     });
   }
 
@@ -53,7 +60,11 @@ class _FeedPageState extends State<FeedPage> {
         padding: const EdgeInsets.all(8),
             children: [
               for (final log in _logs)
-                CityEntryCard(log: log),
+                CityEntryCard(
+                  log: log,
+                  commentCount: _commentCounts[log.id] ?? 0,
+                  commentRepository: widget.commentRepository,
+                ),
             ],
           ),
     );

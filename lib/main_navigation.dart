@@ -1,8 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:roamly/services/city_repository.dart';
+import 'package:roamly/services/comment_repository.dart';
 import 'package:roamly/services/friendship_repository.dart';
 import 'package:roamly/services/sqflite_city_repository.dart';
+import 'package:roamly/services/sqflite_comment_repository.dart';
 import 'package:roamly/services/sqflite_friendship_repository.dart';
 import 'package:roamly/services/sqflite_user_repository.dart';
 import 'package:roamly/services/sqflite_wishlist_repository.dart';
@@ -29,6 +31,7 @@ class _MainNavigationState extends State<MainNavigation>{
   final UserRepository _userRepository = SqfliteUserRepository();
   final FriendshipRepository _friendshipRepository = SqfliteFriendshipRepository();
   final WishlistRepository _wishlistRepository = SqfliteWishlistRepository();
+  final CommentRepository _commentRepository = SqfliteCommentRepository();
 
   void _handleCityAdded() {
     setState(() {
@@ -50,8 +53,10 @@ class _MainNavigationState extends State<MainNavigation>{
 
         final List<Widget> pages = [
           FeedPage(
-              reloadTrigger: _reloadTrigger,
-              repository: _repository),
+            reloadTrigger: _reloadTrigger,
+            cityRepository: _repository,
+            commentRepository: _commentRepository,
+          ),
           SearchPage(
             repository: _repository,
             onCityAdded: _handleCityAdded,

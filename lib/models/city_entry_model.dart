@@ -10,7 +10,7 @@ class CityEntry {
   final DateTime arrivalDate;
   final DateTime departureDate;
   final double rating;
-  final String? comment;
+  final String? reviewText;
   final DateTime createdAt;
   final double latitude;
   final double longitude;
@@ -26,7 +26,7 @@ class CityEntry {
     required this.arrivalDate,
     required this.departureDate,
     required this.rating,
-    this.comment,
+    this.reviewText,
     DateTime? createdAt,
     required this.latitude,
     required this.longitude,
@@ -44,7 +44,7 @@ class CityEntry {
       'arrivalDate': arrivalDate.toIso8601String(),
       'departureDate': departureDate.toIso8601String(),
       'rating': rating,
-      'comment': comment,
+      'comment': reviewText,
       'createdAt': createdAt.toIso8601String(),
       'latitude': latitude,
       'longitude': longitude,
@@ -63,7 +63,7 @@ class CityEntry {
       arrivalDate: DateTime.parse(map['arrivalDate'] as String),
       departureDate: DateTime.parse(map['departureDate'] as String),
       rating: (map['rating'] as num).toDouble(),
-      comment: map['comment'] as String?,
+      reviewText: map['comment'] as String?,
       createdAt: DateTime.parse(map['createdAt'] as String),
       latitude: (map['latitude'] as num).toDouble(),
       longitude: (map['longitude'] as num).toDouble(),
@@ -90,7 +90,7 @@ class CityEntry {
       arrivalDate: arrivalDate ?? this.arrivalDate,
       departureDate: departureDate ?? this.departureDate,
       rating: rating ?? this.rating,
-      comment: comment ?? this.comment,
+      reviewText: comment ?? this.reviewText,
       createdAt: createdAt,
       latitude: latitude,
       longitude: longitude,

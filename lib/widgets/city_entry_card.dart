@@ -2,12 +2,20 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/city_entry_model.dart';
+import '../services/comment_repository.dart';
 import '../themes/colors.dart';
 
 class CityEntryCard extends StatelessWidget {
   final CityEntry log;
+  final int commentCount;
+  final CommentRepository commentRepository;
 
-  const CityEntryCard({super.key, required this.log});
+  const CityEntryCard({
+    super.key,
+    required this.log,
+    required this.commentCount,
+    required this.commentRepository
+  });
 
   String _formatDateRange(DateTime start, DateTime end) {
     final DateFormat monthYear = DateFormat('MMM yyyy');
@@ -116,10 +124,10 @@ class CityEntryCard extends StatelessWidget {
               ),
             ],
             
-            if (log.comment != null && log.comment!.isNotEmpty) ...[
+            if (log.reviewText != null && log.reviewText!.isNotEmpty) ...[
               const SizedBox(height: 16),
               Text(
-                log.comment!,
+                log.reviewText!,
                 style: TextStyle(
                   color: textPrimary,
                   fontStyle: FontStyle.italic,
@@ -128,6 +136,26 @@ class CityEntryCard extends StatelessWidget {
                 ),
               ),
             ],
+
+            const SizedBox(height: 16),
+            GestureDetector(
+              onTap: () {
+                const Text('TODO: Add comments');
+              },
+              child: Row(
+                children: [
+                  Icon(Icons.comment_outlined, size: 16, color: textSecondary,),
+                  const SizedBox(width: 6),
+                  Text(
+                    commentCount == 0 ? 'No comments' : '$commentCount comments',
+                    style: TextStyle(
+                      color: textSecondary,
+                      fontSize: 14,
+                    ),
+                  )
+                ]
+              )
+            )
           ],
         ),
       ),

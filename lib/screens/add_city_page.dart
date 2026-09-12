@@ -61,7 +61,7 @@ class _AddCityPageState extends State<AddCityPage> {
       _countryController.text = entry.country;
       _arrivalDate = entry.arrivalDate;
       _departureDate = entry.departureDate;
-      _commentController.text = entry.comment!;
+      _commentController.text = entry.reviewText!;
       _selectedRating = entry.rating;
     }
     else if (widget.prefill != null) {
@@ -164,7 +164,7 @@ class _AddCityPageState extends State<AddCityPage> {
       arrivalDate: _arrivalDate!,
       departureDate: _departureDate!,
       rating: _selectedRating,
-      comment: _commentController.text.trim(),
+      reviewText: _commentController.text.trim(),
       createdAt: DateTime.now(),
       latitude: widget.editingEntry?.latitude ?? selectedResult!.latitude,
       longitude: widget.editingEntry?.longitude ?? selectedResult!.longitude,
