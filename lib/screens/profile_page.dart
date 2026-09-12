@@ -670,7 +670,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
         children: [
           Icon(Icons.star, color: AppColors.primaryOrange, size: 20),
           Text(log.rating.toString(),
-              style: const TextStyle(color: AppColors.primaryOrange)),
+            style: const TextStyle(color: AppColors.primaryOrange)),
           IconButton(
             icon: const Icon(Icons.edit, size: 20),
             onPressed: () =>
