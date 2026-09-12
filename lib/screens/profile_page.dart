@@ -312,9 +312,9 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
         widget.cityRepository.getEntries(widget.viewedUid),
         widget.userRepository.getUser(widget.viewedUid),
         statsService.calculateStatsFor(widget.viewedUid),
-      ]).then((results) {
+      ]).then((results) async {
         final logs = results[0] as List<CityEntry>;
-        final commentCounts = widget.commentRepository.getCommentCounts(logs.map((e) => e.id).toList());
+        final commentCounts = await widget.commentRepository.getCommentCounts(logs.map((e) => e.id).toList());
         return [...results, commentCounts];
       }),
       builder: (context, snapshot) {
@@ -401,6 +401,10 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                 log: log,
                 commentCount: commentCounts[log.id] ?? 0,
                 commentRepository: widget.commentRepository,
+                cityRepository: widget.cityRepository,
+                userRepository: widget.userRepository,
+                friendshipRepository: widget.friendshipRepository,
+                wishlistRepository: widget.wishlistRepository,
                 onCommentsChanged: () => setState(() {}),
               )
             ),

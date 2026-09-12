@@ -1,8 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:roamly/services/user_repository.dart';
 import '../models/city_entry_model.dart';
+import '../screens/profile_page.dart';
+import '../services/city_repository.dart';
 import '../services/comment_repository.dart';
+import '../services/friendship_repository.dart';
+import '../services/wishlist_repository.dart';
 import '../themes/colors.dart';
 import 'comment_sheet.dart';
 
@@ -10,6 +15,10 @@ class CityEntryCard extends StatelessWidget {
   final CityEntry log;
   final int commentCount;
   final CommentRepository commentRepository;
+  final CityRepository cityRepository;
+  final UserRepository userRepository;
+  final FriendshipRepository friendshipRepository;
+  final WishlistRepository wishlistRepository;
   final VoidCallback? onCommentsChanged;
 
   const CityEntryCard({
@@ -18,6 +27,10 @@ class CityEntryCard extends StatelessWidget {
     required this.commentCount,
     required this.commentRepository,
     required this.onCommentsChanged,
+    required this.cityRepository,
+    required this.userRepository,
+    required this.friendshipRepository,
+    required this.wishlistRepository,
   });
 
   String _formatDateRange(DateTime start, DateTime end) {
@@ -69,11 +82,27 @@ class CityEntryCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 2),
-                      Text(
-                        '@${log.userName}',
-                        style:  TextStyle(
-                          color: textSecondary,
-                          fontSize: 13,
+                      GestureDetector(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProfilePage(
+                              cityRepository: cityRepository,
+                              userRepository: userRepository,
+                              friendshipRepository: friendshipRepository,
+                              wishlistRepository: wishlistRepository,
+                              commentRepository: commentRepository,
+                              viewedUid: log.userId,
+                              onNavigateToStats: () {},
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          '@${log.userName}',
+                          style: TextStyle(
+                            color: textSecondary,
+                            fontSize: 13,
+                          ),
                         ),
                       ),
                     ],

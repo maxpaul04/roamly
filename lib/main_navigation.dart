@@ -56,6 +56,9 @@ class _MainNavigationState extends State<MainNavigation>{
             reloadTrigger: _reloadTrigger,
             cityRepository: _repository,
             commentRepository: _commentRepository,
+            userRepository: _userRepository,
+            friendshipRepository: _friendshipRepository,
+            wishlistRepository: _wishlistRepository,
           ),
           SearchPage(
             repository: _repository,

@@ -2,18 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:roamly/services/city_repository.dart';
 import 'package:roamly/services/comment_repository.dart';
 import '../models/city_entry_model.dart';
+import '../services/friendship_repository.dart';
+import '../services/user_repository.dart';
+import '../services/wishlist_repository.dart';
 import '../widgets/city_entry_card.dart';
 
 class FeedPage extends StatefulWidget {
   final int reloadTrigger;
   final CityRepository cityRepository;
   final CommentRepository commentRepository;
+  final UserRepository userRepository;
+  final FriendshipRepository friendshipRepository;
+  final WishlistRepository wishlistRepository;
+
 
   const FeedPage({
     super.key,
     required this.reloadTrigger,
     required this.cityRepository,
-    required this.commentRepository
+    required this.commentRepository,
+    required this.userRepository,
+    required this.friendshipRepository,
+    required this.wishlistRepository,
   });
 
   @override
@@ -64,6 +74,10 @@ class _FeedPageState extends State<FeedPage> {
                   log: log,
                   commentCount: _commentCounts[log.id] ?? 0,
                   commentRepository: widget.commentRepository,
+                  cityRepository: widget.cityRepository,
+                  userRepository: widget.userRepository,
+                  friendshipRepository: widget.friendshipRepository,
+                  wishlistRepository: widget.wishlistRepository,
                   onCommentsChanged: _loadData,
                 ),
             ],
