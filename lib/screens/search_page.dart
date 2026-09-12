@@ -7,6 +7,7 @@ import 'package:roamly/services/user_repository.dart';
 import '../models/friendship_model.dart';
 import '../models/user_model.dart';
 import '../services/city_repository.dart';
+import '../services/comment_repository.dart';
 import '../services/friendship_repository.dart';
 import '../services/wishlist_repository.dart';
 import '../services/city_api_service.dart';
@@ -25,6 +26,7 @@ class SearchPage extends StatefulWidget {
   final UserRepository userRepository;
   final FriendshipRepository friendshipRepository;
   final WishlistRepository wishlistRepository;
+  final CommentRepository commentRepository;
 
   const SearchPage({
     super.key,
@@ -33,6 +35,7 @@ class SearchPage extends StatefulWidget {
     required this.userRepository,
     required this.friendshipRepository,
     required this.wishlistRepository,
+    required this.commentRepository,
   });
 
   @override
@@ -142,6 +145,7 @@ class _SearchPageState extends State<SearchPage> {
                 userRepository: widget.userRepository,
                 friendshipRepository: widget.friendshipRepository,
                 wishlistRepository: widget.wishlistRepository,
+                commentRepository: widget.commentRepository,
                 onNavigateToStats: () {},
               ),
             ),

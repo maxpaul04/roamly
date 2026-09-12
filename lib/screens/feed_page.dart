@@ -64,6 +64,7 @@ class _FeedPageState extends State<FeedPage> {
                   log: log,
                   commentCount: _commentCounts[log.id] ?? 0,
                   commentRepository: widget.commentRepository,
+                  onCommentsChanged: _loadData,
                 ),
             ],
           ),

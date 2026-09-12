@@ -18,6 +18,7 @@ import '../models/stats.dart';
 import '../models/user_model.dart';
 import '../models/wishlist_entry_model.dart';
 import '../services/auth_service.dart';
+import '../services/comment_repository.dart';
 import '../services/image_storage_service.dart';
 import '../services/stats_service.dart';
 import '../widgets/friendship_action_button.dart';
@@ -30,6 +31,7 @@ class ProfilePage extends StatefulWidget {
   final UserRepository userRepository;
   final WishlistRepository wishlistRepository;
   final FriendshipRepository friendshipRepository;
+  final CommentRepository commentRepository;
   final String viewedUid;
   final VoidCallback onNavigateToStats;
 
@@ -39,6 +41,7 @@ class ProfilePage extends StatefulWidget {
     required this.userRepository,
     required this.friendshipRepository,
     required this.wishlistRepository,
+    required this.commentRepository,
     required this.viewedUid,
     required this.onNavigateToStats,
   });
@@ -309,7 +312,11 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
         widget.cityRepository.getEntries(widget.viewedUid),
         widget.userRepository.getUser(widget.viewedUid),
         statsService.calculateStatsFor(widget.viewedUid),
-      ]),
+      ]).then((results) {
+        final logs = results[0] as List<CityEntry>;
+        final commentCounts = widget.commentRepository.getCommentCounts(logs.map((e) => e.id).toList());
+        return [...results, commentCounts];
+      }),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -318,6 +325,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
         final logs = (snapshot.data?[0] as List<CityEntry>?) ?? [];
         final userModel = snapshot.data?[1] as UserModel?;
         final stats = snapshot.data?[2] as Stats;
+        final commentCounts = (snapshot.data?[3] as Map<int, int>?) ?? {};
 
         final currentFirebaseUser = FirebaseAuth.instance.currentUser;
         final userName = userModel?.userName
@@ -389,7 +397,13 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                 child: Center(child: Text('No journeys logged yet.')),
               )
             else
-              ...logs.map((log) => CityEntryCard(log: log)),
+              ...logs.map((log) => CityEntryCard(
+                log: log,
+                commentCount: commentCounts[log.id] ?? 0,
+                commentRepository: widget.commentRepository,
+                onCommentsChanged: () => setState(() {}),
+              )
+            ),
           ],
         );
       },
@@ -500,10 +514,9 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                   ProfilePage(
                                     cityRepository: widget.cityRepository,
                                     userRepository: widget.userRepository,
-                                    friendshipRepository: widget
-                                        .friendshipRepository,
-                                    wishlistRepository: widget
-                                        .wishlistRepository,
+                                    friendshipRepository: widget.friendshipRepository,
+                                    wishlistRepository: widget.wishlistRepository,
+                                    commentRepository: widget.commentRepository,
                                     viewedUid: otherUid,
                                     onNavigateToStats: () {},
                                   ),

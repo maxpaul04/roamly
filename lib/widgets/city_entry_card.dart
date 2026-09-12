@@ -4,17 +4,20 @@ import 'package:intl/intl.dart';
 import '../models/city_entry_model.dart';
 import '../services/comment_repository.dart';
 import '../themes/colors.dart';
+import 'comment_sheet.dart';
 
 class CityEntryCard extends StatelessWidget {
   final CityEntry log;
   final int commentCount;
   final CommentRepository commentRepository;
+  final VoidCallback? onCommentsChanged;
 
   const CityEntryCard({
     super.key,
     required this.log,
     required this.commentCount,
-    required this.commentRepository
+    required this.commentRepository,
+    required this.onCommentsChanged,
   });
 
   String _formatDateRange(DateTime start, DateTime end) {
@@ -139,15 +142,23 @@ class CityEntryCard extends StatelessWidget {
 
             const SizedBox(height: 16),
             GestureDetector(
-              onTap: () {
-                const Text('TODO: Add comments');
+              onTap: () async {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (context) => CommentSheet(
+                    cityEntryId: log.id,
+                    commentRepository: commentRepository,
+                  ),
+                );
+                onCommentsChanged?.call();
               },
               child: Row(
                 children: [
                   Icon(Icons.comment_outlined, size: 16, color: textSecondary,),
                   const SizedBox(width: 6),
                   Text(
-                    commentCount == 0 ? 'No comments' : '$commentCount comments',
+                    commentCount == 0 ? 'No comments yet' : '$commentCount comments',
                     style: TextStyle(
                       color: textSecondary,
                       fontSize: 14,

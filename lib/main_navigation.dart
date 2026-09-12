@@ -62,7 +62,9 @@ class _MainNavigationState extends State<MainNavigation>{
             onCityAdded: _handleCityAdded,
             userRepository: _userRepository,
             friendshipRepository: _friendshipRepository,
-            wishlistRepository: _wishlistRepository,),
+            wishlistRepository: _wishlistRepository,
+            commentRepository: _commentRepository,
+          ),
           AddCityPage(
               onSave: _handleCityAdded,
               repository: _repository),
@@ -72,6 +74,7 @@ class _MainNavigationState extends State<MainNavigation>{
               userRepository: _userRepository,
               friendshipRepository: _friendshipRepository,
               wishlistRepository: _wishlistRepository,
+              commentRepository: _commentRepository,
               viewedUid: currentUid,
               onNavigateToStats: () => _goToTab(3)),
         ];
