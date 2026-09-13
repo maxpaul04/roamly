@@ -257,7 +257,7 @@ class _AddCityPageState extends State<AddCityPage> {
 
         if (user == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Add City')),
+            appBar: AppBar(title: const Text('Add City', style: TextStyle(fontWeight: FontWeight.bold))),
             body: Center(
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
@@ -299,7 +299,7 @@ class _AddCityPageState extends State<AddCityPage> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Add City'),
+            title: const Text('Add City', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),

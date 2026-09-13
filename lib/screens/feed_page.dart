@@ -62,7 +62,7 @@ class _FeedPageState extends State<FeedPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('roamly'),
+        title: const Text('roamly', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
       body: _logs.isEmpty 
         ? const Center(child: Text('No journeys logged yet.'))

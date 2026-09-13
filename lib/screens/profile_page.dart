@@ -230,7 +230,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
         //conditional rendering depending if own profile or not
         return Scaffold(
           appBar: AppBar(
-            title: Text(isOwnProfile ? 'My Profile' : 'Profile'),
+            title: Text(isOwnProfile ? 'My Profile' : 'Profile', style: TextStyle(fontWeight: FontWeight.bold)),
             actions: [
               if (isOwnProfile)
                 IconButton(icon: const Icon(Icons.logout),
