@@ -341,9 +341,16 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const CircleAvatar(
+                  CircleAvatar(
                     radius: 48,
-                    child: Icon(Icons.person, size: 48),
+                    // If profilePicturePath exists, load it from the file system
+                    backgroundImage: userModel?.profilePicturePath != null
+                        ? FileImage(File(userModel!.profilePicturePath!))
+                        : null,
+                    // If no path exists, show the fallback Icon
+                    child: userModel?.profilePicturePath == null
+                        ? const Icon(Icons.person, size: 48)
+                        : null,
                   ),
                   const SizedBox(height: 12),
                   Text(
